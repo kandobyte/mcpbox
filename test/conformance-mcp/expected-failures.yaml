@@ -1,0 +1,16 @@
+# Expected failures for MCP conformance tests.
+# See CONFORMANCE.md for details on why each fails.
+
+server:
+  - server-sse-multiple-streams
+  - logging-set-level
+  - tools-call-with-logging
+  - tools-call-with-progress
+  - tools-call-sampling
+  - tools-call-elicitation
+  - elicitation-sep1034-defaults
+  - elicitation-sep1330-enums
+  - resources-templates-read
+  - resources-subscribe
+  - resources-unsubscribe
+  - dns-rebinding-protection

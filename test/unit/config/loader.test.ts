@@ -1,0 +1,665 @@
+import assert from "node:assert";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { after, before, describe, it } from "node:test";
+
+const TEST_DIR = join(import.meta.dirname, ".tmp");
+
+function writeConfig(filename: string, content: object | string): string {
+  const path = join(TEST_DIR, filename);
+  const data =
+    typeof content === "string" ? content : JSON.stringify(content, null, 2);
+  writeFileSync(path, data);
+  return path;
+}
+
+describe("Config Loader", () => {
+  before(() => {
+    mkdirSync(TEST_DIR, { recursive: true });
+  });
+
+  after(() => {
+    try {
+      rmSync(TEST_DIR, { recursive: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+  });
+
+  describe("Basic Parsing", () => {
+    it("should parse basic JSON config", async () => {
+      const path = writeConfig("basic.json", {
+        server: { port: 9000 },
+        mcpServers: {
+          "test-mcp": {
+            command: "echo",
+            args: ["hello"],
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.server.port, 9000);
+      assert.strictEqual(config.auth, undefined);
+      assert.strictEqual(config.mcps.length, 1);
+      assert.strictEqual(config.mcps[0].name, "test-mcp");
+      assert.strictEqual(config.mcps[0].command, "echo");
+      assert.deepStrictEqual(config.mcps[0].args, ["hello"]);
+    });
+
+    it("should handle config without mcpServers", async () => {
+      const path = writeConfig("no-mcps.json", {
+        server: { port: 8080 },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.deepStrictEqual(config.mcps, []);
+    });
+  });
+
+  describe("Environment Variable Substitution", () => {
+    it("should substitute environment variables in strings", async () => {
+      process.env.TEST_USER = "testuser";
+      process.env.TEST_PASS = "testpass";
+
+      const path = writeConfig("env.json", {
+        auth: {
+          type: "oauth",
+          users: [{ username: "${TEST_USER}", password: "${TEST_PASS}" }],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.auth?.type, "oauth");
+      if (config.auth?.type === "oauth") {
+        assert.strictEqual(config.auth.users?.[0].username, "testuser");
+        assert.strictEqual(config.auth.users?.[0].password, "testpass");
+      }
+
+      delete process.env.TEST_USER;
+      delete process.env.TEST_PASS;
+    });
+
+    it("should substitute env vars in mcpServers", async () => {
+      process.env.MCP_TOKEN = "secret-token";
+
+      const path = writeConfig("mcp-env.json", {
+        mcpServers: {
+          "api-mcp": {
+            command: "node",
+            args: ["server.js"],
+            env: {
+              API_TOKEN: "${MCP_TOKEN}",
+              DEBUG: "true",
+            },
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].name, "api-mcp");
+      assert.strictEqual(config.mcps[0].env?.API_TOKEN, "secret-token");
+      assert.strictEqual(config.mcps[0].env?.DEBUG, "true");
+
+      delete process.env.MCP_TOKEN;
+    });
+
+    it("should handle multiple env vars in same string", async () => {
+      process.env.HOST = "localhost";
+      process.env.PORT = "5432";
+
+      const path = writeConfig("multi-env.json", {
+        mcpServers: {
+          db: {
+            command: "psql",
+            args: ["${HOST}:${PORT}"],
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.deepStrictEqual(config.mcps[0].args, ["localhost:5432"]);
+
+      delete process.env.HOST;
+      delete process.env.PORT;
+    });
+  });
+
+  describe("Client Configs", () => {
+    it("should parse client with redirect_uris", async () => {
+      const path = writeConfig("client.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "my-app",
+              client_secret: "app-secret",
+              redirect_uris: [
+                "https://myapp.com/callback",
+                "https://myapp.com/oauth",
+              ],
+              grant_type: "authorization_code",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.auth?.type, "oauth");
+      if (config.auth?.type === "oauth") {
+        const clients = config.auth.clients;
+        assert.ok(clients);
+        assert.strictEqual(clients[0].client_id, "my-app");
+        assert.strictEqual(clients[0].client_secret, "app-secret");
+        assert.deepStrictEqual(clients[0].redirect_uris, [
+          "https://myapp.com/callback",
+          "https://myapp.com/oauth",
+        ]);
+      }
+    });
+
+    it("should parse M2M client without redirect_uris", async () => {
+      const path = writeConfig("m2m-client.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "m2m-app",
+              client_secret: "m2m-secret",
+              grant_type: "client_credentials",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.auth?.type, "oauth");
+      if (config.auth?.type === "oauth") {
+        const clients = config.auth.clients;
+        assert.ok(clients);
+        assert.strictEqual(clients[0].client_id, "m2m-app");
+        assert.strictEqual(clients[0].grant_type, "client_credentials");
+      }
+    });
+  });
+
+  describe("Defaults", () => {
+    it("should apply default port when server not specified", async () => {
+      const path = writeConfig("defaults.json", {});
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.server.port, 8080);
+      assert.strictEqual(config.auth, undefined);
+      assert.deepStrictEqual(config.mcps, []);
+    });
+
+    it("should apply default port for empty server config", async () => {
+      const path = writeConfig("partial-server.json", {
+        server: {},
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.server.port, 8080);
+    });
+  });
+
+  describe("MCP Servers", () => {
+    it("should load multiple MCP servers", async () => {
+      const path = writeConfig("multi.json", {
+        mcpServers: {
+          github: {
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+          },
+          slack: {
+            command: "npx",
+            args: ["-y", "@slack/mcp"],
+          },
+          fetch: {
+            command: "uvx",
+            args: ["mcp-server-fetch"],
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.mcps.length, 3);
+      const names = config.mcps.map((m) => m.name);
+      assert.ok(names.includes("github"));
+      assert.ok(names.includes("slack"));
+      assert.ok(names.includes("fetch"));
+    });
+
+    it("should handle MCP with no args", async () => {
+      const path = writeConfig("no-args.json", {
+        mcpServers: {
+          simple: {
+            command: "/usr/bin/mcp-server",
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].command, "/usr/bin/mcp-server");
+      assert.strictEqual(config.mcps[0].args, undefined);
+    });
+
+    it("should handle MCP with tools allowlist", async () => {
+      const path = writeConfig("tools-filter.json", {
+        mcpServers: {
+          github: {
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            tools: ["list_issues", "create_issue"],
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].name, "github");
+      assert.deepStrictEqual(config.mcps[0].tools, [
+        "list_issues",
+        "create_issue",
+      ]);
+    });
+
+    it("should handle MCP without tools (all tools allowed)", async () => {
+      const path = writeConfig("no-tools-filter.json", {
+        mcpServers: {
+          github: {
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].tools, undefined);
+    });
+  });
+
+  describe("Error Handling", () => {
+    it("should return defaults when config file not found", async () => {
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      const config = loadConfig("/nonexistent/path/config.json");
+
+      assert.strictEqual(config.server.port, 8080);
+      assert.strictEqual(config.auth, undefined);
+      assert.strictEqual(config.storage, undefined);
+      assert.deepStrictEqual(config.mcps, []);
+    });
+
+    it("should throw on invalid JSON", async () => {
+      const path = writeConfig("invalid.json", "{ not valid json");
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => {
+        loadConfig(path);
+      }, /Invalid JSON/);
+    });
+
+    it("should throw on unknown auth type", async () => {
+      const path = writeConfig("unknown-auth.json", {
+        auth: {
+          type: "api-key",
+          apiKey: "some-key-here-12345",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /Invalid configuration/);
+    });
+
+    it("should throw on unknown fields", async () => {
+      const path = writeConfig("unknown-field.json", {
+        auth: {
+          type: "apikey",
+          apiKey: "valid-key-here-12345",
+          unknownField: "should fail",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /Invalid configuration/);
+    });
+
+    it("should throw on apikey without key", async () => {
+      const path = writeConfig("apikey-no-key.json", {
+        auth: {
+          type: "apikey",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /Invalid configuration/);
+    });
+
+    it("should throw on invalid API key format (too short)", async () => {
+      const path = writeConfig("invalid-apikey.json", {
+        auth: {
+          type: "apikey",
+          apiKey: "short",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /at least 16 characters/);
+    });
+
+    it("should throw on API key with invalid characters", async () => {
+      const path = writeConfig("invalid-apikey-chars.json", {
+        auth: {
+          type: "apikey",
+          apiKey: "key!@#$%^&*()12345678",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /must contain only/);
+    });
+
+    it("should accept valid API key format", async () => {
+      const path = writeConfig("valid-apikey.json", {
+        auth: {
+          type: "apikey",
+          apiKey: "sk_live_abc123XYZ789",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.auth?.type, "apikey");
+      if (config.auth?.type === "apikey") {
+        assert.strictEqual(config.auth.apiKey, "sk_live_abc123XYZ789");
+      }
+    });
+
+    it("should throw on oauth without users, clients, or dynamic_registration", async () => {
+      const path = writeConfig("oauth-empty.json", {
+        auth: {
+          type: "oauth",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /OAuth requires/);
+    });
+
+    it("should throw on client_credentials without client_secret", async () => {
+      const path = writeConfig("m2m-no-secret.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "m2m-app",
+              grant_type: "client_credentials",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /client_secret is required/);
+    });
+
+    it("should throw on authorization_code without redirect_uris", async () => {
+      const path = writeConfig("auth-code-no-redirect.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "web-app",
+              grant_type: "authorization_code",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /redirect_uris is required/);
+    });
+
+    it("should throw on invalid redirect_uri format", async () => {
+      const path = writeConfig("invalid-redirect.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "web-app",
+              grant_type: "authorization_code",
+              redirect_uris: ["not-a-valid-url"],
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /Invalid redirect URI/);
+    });
+  });
+
+  describe("Log Config", () => {
+    it("should parse log configuration", async () => {
+      const path = writeConfig("log.json", {
+        log: {
+          level: "debug",
+          format: "json",
+          redactSecrets: false,
+          mcpDebug: true,
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.log?.level, "debug");
+      assert.strictEqual(config.log?.format, "json");
+      assert.strictEqual(config.log?.redactSecrets, false);
+      assert.strictEqual(config.log?.mcpDebug, true);
+    });
+
+    it("should reject invalid log level", async () => {
+      const path = writeConfig("invalid-log-level.json", {
+        log: {
+          level: "verbose",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /Invalid configuration/);
+    });
+  });
+
+  describe("Storage Config", () => {
+    it("should parse memory storage config", async () => {
+      const path = writeConfig("memory-storage.json", {
+        storage: {
+          type: "memory",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.storage?.type, "memory");
+    });
+
+    it("should parse sqlite storage config", async () => {
+      const path = writeConfig("sqlite-storage.json", {
+        storage: {
+          type: "sqlite",
+          path: "./data/test.db",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+
+      assert.strictEqual(config.storage?.type, "sqlite");
+      if (config.storage?.type === "sqlite") {
+        assert.strictEqual(config.storage.path, "./data/test.db");
+      }
+    });
+
+    it("should reject unknown storage type", async () => {
+      const path = writeConfig("invalid-storage.json", {
+        storage: {
+          type: "redis",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(() => loadConfig(path), /Invalid configuration/);
+    });
+  });
+
+  describe("OAuth Configurations", () => {
+    it("should accept oauth with users only", async () => {
+      const path = writeConfig("oauth-users.json", {
+        auth: {
+          type: "oauth",
+          users: [{ username: "admin", password: "password123" }],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+      assert.strictEqual(config.auth?.type, "oauth");
+    });
+
+    it("should accept oauth with dynamic_registration only", async () => {
+      const path = writeConfig("oauth-dynamic.json", {
+        auth: {
+          type: "oauth",
+          dynamic_registration: true,
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+      assert.strictEqual(config.auth?.type, "oauth");
+    });
+
+    it("should accept oauth with authorization_code client", async () => {
+      const path = writeConfig("oauth-auth-code.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "web-app",
+              redirect_uris: ["https://app.example.com/callback"],
+              grant_type: "authorization_code",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+      assert.strictEqual(config.auth?.type, "oauth");
+    });
+
+    it("should accept oauth with client_credentials client", async () => {
+      const path = writeConfig("oauth-client-creds.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "backend-service",
+              client_secret: "secret123",
+              grant_type: "client_credentials",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+      assert.strictEqual(config.auth?.type, "oauth");
+    });
+
+    it("should accept oauth with mixed grant types", async () => {
+      const path = writeConfig("oauth-mixed.json", {
+        auth: {
+          type: "oauth",
+          clients: [
+            {
+              client_id: "web-app",
+              redirect_uris: ["https://app.example.com/callback"],
+              grant_type: "authorization_code",
+            },
+            {
+              client_id: "backend-service",
+              client_secret: "secret123",
+              grant_type: "client_credentials",
+            },
+          ],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+      assert.strictEqual(config.auth?.type, "oauth");
+      if (config.auth?.type === "oauth") {
+        assert.strictEqual(config.auth.clients?.length, 2);
+      }
+    });
+
+    it("should accept oauth with optional issuer", async () => {
+      const path = writeConfig("oauth-issuer.json", {
+        auth: {
+          type: "oauth",
+          issuer: "https://example.com",
+          users: [{ username: "admin", password: "password123" }],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const config = loadConfig(path);
+      assert.strictEqual(config.auth?.type, "oauth");
+      if (config.auth?.type === "oauth") {
+        assert.strictEqual(config.auth.issuer, "https://example.com");
+      }
+    });
+  });
+});

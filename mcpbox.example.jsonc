@@ -1,0 +1,91 @@
+// Supports environment substitution: ${VAR}
+{
+  // Server settings
+  "server": {
+    "port": 8080 // default: 8080
+  },
+
+  // Logging
+  "log": {
+    "level": "info", // default: info (options: debug, info, warn, error)
+    "format": "pretty", // default: pretty (options: pretty, json)
+    "redactSecrets": true, // default: true - hide passwords/tokens in logs
+    "mcpDebug": false // default: false - forward stderr from MCP servers to log
+  },
+
+  // Authentication: apikey or oauth
+  // Omit this section entirely for no authentication (anyone who can reach the server can use it)
+  "auth": {
+    "type": "oauth",
+
+    // API key settings (when type: apikey)
+    // Clients authenticate via Authorization: Bearer <key> header
+    // "apiKey": "${MCPBOX_API_KEY}"
+
+    // OAuth settings (when type: oauth)
+    "issuer": "https://mcp.example.com", // required for public access - your public URL
+    "users": [
+      // passwords can be plain text or bcrypt hash
+      {
+        "username": "${MCPBOX_USER}",
+        "password": "${MCPBOX_PASSWORD}"
+      }
+    ],
+    "dynamic_registration": true // default: false - allow clients to self-register
+
+    // Pre-registered clients (optional)
+    // Grant types:
+    //   - authorization_code: user-facing apps where users log in (requires redirect_uris)
+    //   - client_credentials: machine-to-machine access (requires client_secret, no user context)
+    // "clients": [
+    //   // User-facing app (Authorization Code flow)
+    //   {
+    //     "client_id": "my-web-app",
+    //     "client_name": "My Web App",
+    //     "client_secret": "${SECRET}", // not needed if client supports PKCE
+    //     "redirect_uris": ["https://example.com/callback"],
+    //     "grant_type": "authorization_code"
+    //   },
+    //   // Machine-to-machine client (Client Credentials flow)
+    //   {
+    //     "client_id": "my-backend-service",
+    //     "client_secret": "${M2M_SECRET}", // required for client_credentials
+    //     "grant_type": "client_credentials"
+    //   }
+    // ]
+  },
+
+  // State persistence for OAuth tokens and registered clients
+  // Only used when auth.type is "oauth"
+  // default: { "type": "memory" } - lost on restart
+  "storage": {
+    "type": "sqlite",
+    "path": "./data/mcpbox.db" // default: ./data/mcpbox.db
+  },
+
+  // default: {} - no servers
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      // Optional: limit which tools are exposed (omit for all tools).
+      // Useful for reducing scope, improving security, or hiding noisy tools.
+      "tools": ["list_issues", "create_issue", "get_pull_request"]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    // Docker-based server example
+    "postgres": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "DATABASE_URL", "mcp/postgres"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    }
+  }
+}

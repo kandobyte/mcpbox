@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 3D box outline - top face -->
+  <path d="M50 15 L85 32 L50 49 L15 32 Z" fill="none" stroke="#404040" stroke-width="2.5" stroke-linejoin="round" />
+  <!-- Left face - split to avoid text area -->
+  <path d="M15 32 L15 68 L50 85 L50 66" fill="none" stroke="#404040" stroke-width="2.5" stroke-linejoin="round" />
+  <path d="M50 49 L50 48" fill="none" stroke="#404040" stroke-width="2.5" />
+  <!-- Right face - split to avoid text area -->
+  <path d="M85 32 L85 68 L50 85 L50 66" fill="none" stroke="#404040" stroke-width="2.5" stroke-linejoin="round" />
+  <path d="M50 49 L50 48" fill="none" stroke="#404040" stroke-width="2.5" />
+  <!-- MCP text -->
+  <text x="50" y="62" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#404040" text-anchor="middle">MCP</text>
+</svg>
