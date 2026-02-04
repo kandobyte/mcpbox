@@ -176,7 +176,7 @@ export class McpManager {
         this.resourceToMcp.set(resource.uri, config.name);
       }
     } catch {
-      logger.info({ mcp: config.name }, "Server doesn't support resources");
+      logger.debug({ mcp: config.name }, "Server doesn't support resources");
     }
 
     // Get prompts from this MCP (namespace them if multiple servers)
@@ -193,7 +193,7 @@ export class McpManager {
         this.promptToMcp.set(prompt.name, config.name);
       }
     } catch {
-      logger.info({ mcp: config.name }, "Server doesn't support prompts");
+      logger.debug({ mcp: config.name }, "Server doesn't support prompts");
     }
 
     this.mcps.set(config.name, {
