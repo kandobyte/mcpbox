@@ -77,37 +77,6 @@ export class MemoryStore implements StateStore {
     this.refreshTokens.set(newToken.token, newToken);
   }
 
-  // Cleanup expired tokens
-  cleanupExpired(): void {
-    const now = Date.now();
-    let accessCount = 0;
-    let refreshCount = 0;
-
-    for (const [token, data] of this.accessTokens) {
-      if (data.expires_at < now) {
-        this.accessTokens.delete(token);
-        accessCount++;
-      }
-    }
-
-    for (const [token, data] of this.refreshTokens) {
-      if (data.expires_at < now) {
-        this.refreshTokens.delete(token);
-        refreshCount++;
-      }
-    }
-
-    if (accessCount > 0 || refreshCount > 0) {
-      logger.debug(
-        {
-          accessTokens: accessCount,
-          refreshTokens: refreshCount,
-        },
-        "Cleaned up expired tokens",
-      );
-    }
-  }
-
   close(): void {
     // Nothing to close for memory store
   }

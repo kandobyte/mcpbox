@@ -52,9 +52,6 @@ export interface StateStore {
   deleteRefreshToken(token: string): void;
   rotateRefreshToken(oldTokenHash: string, newToken: StoredRefreshToken): void;
 
-  // Cleanup expired tokens
-  cleanupExpired(): void;
-
   // Close/cleanup resources (may be async for stores that need to persist data)
   close(): void | Promise<void>;
 }

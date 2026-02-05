@@ -3,8 +3,6 @@ import { beforeEach, describe, it } from "node:test";
 import { MemoryStore } from "../../../src/storage/memory.js";
 import {
   createDynamicClient,
-  createExpiredAccessToken,
-  createExpiredRefreshToken,
   createTestAccessToken,
   createTestClient,
   createTestRefreshToken,
@@ -166,52 +164,6 @@ describe("MemoryStore", () => {
 
       assert.strictEqual(store.getRefreshToken("old-token"), null);
       assert.deepStrictEqual(store.getRefreshToken("new-token"), newToken);
-    });
-  });
-
-  describe("Cleanup Expired Tokens", () => {
-    it("should remove expired access tokens", () => {
-      const valid = createTestAccessToken({ token: "valid" });
-      const expired = createExpiredAccessToken({ token: "expired" });
-
-      store.saveAccessToken(valid);
-      store.saveAccessToken(expired);
-
-      store.cleanupExpired();
-
-      assert.ok(store.getAccessToken("valid"));
-      assert.strictEqual(store.getAccessToken("expired"), null);
-    });
-
-    it("should remove expired refresh tokens", () => {
-      const valid = createTestRefreshToken({ token: "valid" });
-      const expired = createExpiredRefreshToken({ token: "expired" });
-
-      store.saveRefreshToken(valid);
-      store.saveRefreshToken(expired);
-
-      store.cleanupExpired();
-
-      assert.ok(store.getRefreshToken("valid"));
-      assert.strictEqual(store.getRefreshToken("expired"), null);
-    });
-
-    it("should handle cleanup when no tokens exist", () => {
-      // Should not throw
-      store.cleanupExpired();
-    });
-
-    it("should handle cleanup when all tokens are valid", () => {
-      const token1 = createTestAccessToken({ token: "valid-1" });
-      const token2 = createTestAccessToken({ token: "valid-2" });
-
-      store.saveAccessToken(token1);
-      store.saveAccessToken(token2);
-
-      store.cleanupExpired();
-
-      assert.ok(store.getAccessToken("valid-1"));
-      assert.ok(store.getAccessToken("valid-2"));
     });
   });
 
