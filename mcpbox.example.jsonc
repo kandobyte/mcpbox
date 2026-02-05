@@ -80,11 +80,21 @@
       "args": ["mcp-server-fetch"]
     },
     // Docker-based server example
-    "postgres": {
+    "slack": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "-e", "DATABASE_URL", "mcp/postgres"],
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "SLACK_BOT_TOKEN",
+        "-e",
+        "SLACK_TEAM_ID",
+        "mcp/slack"
+      ],
       "env": {
-        "DATABASE_URL": "${DATABASE_URL}"
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
       }
     }
   }
