@@ -19,9 +19,24 @@
       },
       "performance": {
         "noDelete": "off"
+      },
+      "correctness": {
+        "noPrivateImports": "error"
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["test/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noPrivateImports": "off"
+          }
+        }
+      }
+    }
+  ],
   "files": {
     "includes": ["**", "!**/dist", "!**/node_modules"]
   }

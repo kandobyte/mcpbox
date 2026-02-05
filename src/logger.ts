@@ -1,7 +1,10 @@
 import pino, { type Logger } from "pino";
 import type { LogConfig } from "./config/types.js";
 
-// Recursively redact sensitive patterns in strings within objects/arrays
+/**
+ * Recursively redact sensitive patterns in strings within objects/arrays.
+ * @package
+ */
 export function redactSensitiveStrings(obj: unknown): unknown {
   if (typeof obj === "string") {
     return obj.replace(/(PASSWORD|SECRET|TOKEN|KEY|PIN)=\S*/gi, "$1=***");

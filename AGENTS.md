@@ -16,6 +16,7 @@
 - Write comments that explain *why*, not *what*—update or remove stale comments when modifying code
 - Prefer renaming over commenting: if code needs a comment to explain what it does, rename instead
 - Use JSDoc (`/** */`) only for exported functions/types; use `//` for implementation notes
+- Use `@package` on exports internal to their feature package
 - Include `@example` in JSDoc when input/output isn't obvious from the signature
 - No commented-out code, no TODO/FIXME without a linked issue
 - Naming: camelCase functions/variables, PascalCase types/classes, UPPER_SNAKE_CASE constants; prefix booleans with `is`/`has`/`should`

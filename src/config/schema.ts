@@ -14,6 +14,7 @@ const ApiKeySchema = z
 
 /**
  * MCP server entry (command + args + env)
+ * @package
  */
 export const McpServerEntrySchema = z
   .object({
@@ -26,6 +27,7 @@ export const McpServerEntrySchema = z
 
 /**
  * OAuth user credentials
+ * @package
  */
 export const OAuthUserSchema = z
   .object({
@@ -36,6 +38,7 @@ export const OAuthUserSchema = z
 
 /**
  * OAuth client configuration
+ * @package
  */
 export const OAuthClientSchema = z
   .object({
@@ -76,6 +79,7 @@ export const OAuthClientSchema = z
 
 /**
  * Auth config - discriminated union based on type
+ * @package
  */
 export const AuthConfigSchema = z.discriminatedUnion("type", [
   // API key authentication
@@ -113,6 +117,7 @@ export const AuthConfigSchema = z.discriminatedUnion("type", [
 
 /**
  * Server configuration
+ * @package
  */
 export const ServerConfigSchema = z
   .object({
@@ -127,6 +132,7 @@ export const ServerConfigSchema = z
 
 /**
  * Log configuration
+ * @package
  */
 export const LogConfigSchema = z
   .object({
@@ -139,6 +145,7 @@ export const LogConfigSchema = z
 
 /**
  * Storage configuration - discriminated union based on type
+ * @package
  */
 export const StorageConfigSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("memory") }).strict(),
@@ -152,6 +159,7 @@ export const StorageConfigSchema = z.discriminatedUnion("type", [
 
 /**
  * Raw config file schema (before processing)
+ * @package
  */
 export const RawConfigSchema = z
   .object({
@@ -165,6 +173,7 @@ export const RawConfigSchema = z
 
 /**
  * Internal MCP config (with name resolved from key)
+ * @package
  */
 export const McpConfigSchema = z.object({
   name: z.string(),
@@ -176,6 +185,7 @@ export const McpConfigSchema = z.object({
 
 /**
  * Processed config (after loader adds defaults and resolves mcpServers)
+ * @package
  */
 export const ConfigSchema = z.object({
   server: ServerConfigSchema,

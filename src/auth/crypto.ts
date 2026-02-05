@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 
 /**
  * Timing-safe string comparison to prevent timing attacks.
+ * @package
  */
 export function safeCompare(a: string, b: string): boolean {
   try {

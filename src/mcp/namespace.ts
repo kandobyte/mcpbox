@@ -9,6 +9,7 @@ const SEPARATOR = "__";
 
 /**
  * Add namespace prefix to a name.
+ * @package
  * @example namespaceName("github", "create_issue") => "github__create_issue"
  */
 export function namespaceName(serverName: string, name: string): string {
@@ -18,6 +19,7 @@ export function namespaceName(serverName: string, name: string): string {
 /**
  * Extract server name from a namespaced name.
  * Returns null if the name doesn't contain the separator.
+ * @package
  * @example extractServerName("github__create_issue") => "github"
  * @example extractServerName("create_issue") => null
  */
@@ -28,6 +30,7 @@ export function extractServerName(namespacedName: string): string | null {
 
 /**
  * Strip namespace prefix to get the original name.
+ * @package
  * @example stripNamespace("github", "github__create_issue") => "create_issue"
  */
 export function stripNamespace(
@@ -39,6 +42,7 @@ export function stripNamespace(
 
 /**
  * Check if a name is namespaced (contains the separator).
+ * @package
  * @example isNamespaced("github__create_issue") => true
  * @example isNamespaced("create_issue") => false
  */
