@@ -20,10 +20,9 @@ export function verifyClientSecret(input: string, storedHash: string): boolean {
 
 /**
  * Check if a password string is a bcrypt hash.
- * Bcrypt hashes start with $2a$ or $2b$ followed by cost factor.
  */
 export function isBcryptHash(password: string): boolean {
-  return /^\$2[ab]\$\d{2}\$/.test(password);
+  return /^\$2[aby]\$\d{2}\$/.test(password);
 }
 
 /**

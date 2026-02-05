@@ -150,6 +150,16 @@ function checkConfig(config: Config): string[] {
     );
   }
 
+  if (config.auth?.type === "oauth" && config.auth.users) {
+    for (const user of config.auth.users) {
+      if (!/^\$2[aby]\$\d{2}\$/.test(user.password)) {
+        warnings.push(
+          `User "${user.username}": password is not hashed, consider using a bcrypt hash`,
+        );
+      }
+    }
+  }
+
   return warnings;
 }
 

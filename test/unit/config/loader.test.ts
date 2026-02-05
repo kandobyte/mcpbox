@@ -2,6 +2,7 @@ import assert from "node:assert";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
+import bcrypt from "bcryptjs";
 
 const TEST_DIR = join(import.meta.dirname, ".tmp");
 
@@ -615,6 +616,39 @@ describe("Config Loader", () => {
       const { warnings } = loadConfig(path);
 
       assert.ok(warnings.some((w) => w.includes("No MCPs configured")));
+    });
+
+    it("should warn on unhashed user password", async () => {
+      const path = writeConfig("warn-password.json", {
+        auth: {
+          type: "oauth",
+          users: [{ username: "admin", password: "password123" }],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { warnings } = loadConfig(path);
+
+      assert.ok(
+        warnings.some(
+          (w) => w.includes('User "admin"') && w.includes("not hashed"),
+        ),
+      );
+    });
+
+    it("should not warn on bcrypt hashed password", async () => {
+      const hashed = bcrypt.hashSync("password123", 10);
+      const path = writeConfig("warn-password-hashed.json", {
+        auth: {
+          type: "oauth",
+          users: [{ username: "admin", password: hashed }],
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { warnings } = loadConfig(path);
+
+      assert.ok(!warnings.some((w) => w.includes("not hashed")));
     });
   });
 
