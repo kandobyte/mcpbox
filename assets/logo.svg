@@ -1,12 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- 3D box outline - top face -->
-  <path d="M50 15 L85 32 L50 49 L15 32 Z" fill="none" stroke="#404040" stroke-width="2.5" stroke-linejoin="round" />
-  <!-- Left face - split to avoid text area -->
-  <path d="M15 32 L15 68 L50 85 L50 66" fill="none" stroke="#404040" stroke-width="2.5" stroke-linejoin="round" />
-  <path d="M50 49 L50 48" fill="none" stroke="#404040" stroke-width="2.5" />
-  <!-- Right face - split to avoid text area -->
-  <path d="M85 32 L85 68 L50 85 L50 66" fill="none" stroke="#404040" stroke-width="2.5" stroke-linejoin="round" />
-  <path d="M50 49 L50 48" fill="none" stroke="#404040" stroke-width="2.5" />
-  <!-- MCP text -->
-  <text x="50" y="62" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#404040" text-anchor="middle">MCP</text>
+<svg width="512" height="512" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M50 10 L85 28 L50 46 L15 28 Z" fill="none" stroke="#1c1917" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M15 28 L15 64 L50 82 L85 64 L85 28" fill="none" stroke="#1c1917" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M50 46 L50 82" fill="none" stroke="#1c1917" stroke-width="3"/>
+  <line x1="46.1" y1="12" x2="63.6" y2="21" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="42.2" y1="14" x2="77.2" y2="32" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="38.3" y1="16" x2="55.8" y2="25" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="34.4" y1="18" x2="51.9" y2="27" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="30.6" y1="20" x2="65.6" y2="38" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="26.7" y1="22" x2="61.7" y2="40" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="22.8" y1="24" x2="40.3" y2="33" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="18.9" y1="26" x2="53.9" y2="44" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="32" x2="32" y2="41" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="36" x2="50" y2="54" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="40" x2="32" y2="49" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="44" x2="32" y2="53" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="48" x2="32" y2="57" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="52" x2="32" y2="61" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="56" x2="50" y2="74" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="15" y1="60" x2="50" y2="78" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="32" x2="68" y2="41" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="36" x2="50" y2="54" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="40" x2="68" y2="49" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="44" x2="50" y2="62" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="48" x2="68" y2="57" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="52" x2="68" y2="61" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="56" x2="68" y2="65" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
+  <line x1="85" y1="60" x2="68" y2="69" stroke="#1c1917" stroke-width="1" opacity="0.8"/>
 </svg>

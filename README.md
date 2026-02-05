@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" width="80" alt="MCPBox" />
+  <img src="assets/logo.svg" width="128" alt="MCPBox" />
 </p>
 
 **MCPBox** is a lightweight gateway that exposes local stdio-based MCP (Model Context Protocol) servers via Streamable HTTP, enabling Claude and other AI agents to connect from anywhere.
