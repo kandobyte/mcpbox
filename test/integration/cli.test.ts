@@ -219,7 +219,6 @@ describe("CLI", () => {
     });
 
     it("should start with defaults for non-existent config file", async () => {
-      const port = 19099;
       // Use a non-existent config but override port via a real config
       // Actually, with defaults it will use port 8080, so let's just verify it starts
       const server = await startServer(

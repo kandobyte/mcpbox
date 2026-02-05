@@ -24,9 +24,10 @@
     "mcp",
     "model-context-protocol",
     "mcp-server",
-    "gateway",
+    "mcp-gateway",
+    "mcp-proxy",
+    "oauth2",
     "claude",
-    "llm",
     "ai",
     "ai-agents"
   ],
@@ -40,7 +41,9 @@
   "bugs": {
     "url": "https://github.com/kandobyte/mcpbox/issues"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=22.5.0"
   },
@@ -55,7 +58,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.3.14",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.1.0",
     "tsx": "^4.21.0",

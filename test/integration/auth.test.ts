@@ -1,14 +1,12 @@
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
 import {
-  PORTS,
-  TEST_API_KEY,
-  TEST_CLIENTS,
-  TEST_CREDENTIALS,
   mcpRequest,
   post,
   startServer,
   stopServer,
+  TEST_API_KEY,
+  TEST_CLIENTS,
 } from "../helpers/index.js";
 
 const APIKEY_PORT = 8082;

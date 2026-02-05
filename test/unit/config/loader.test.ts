@@ -70,6 +70,7 @@ describe("Config Loader", () => {
       const path = writeConfig("env.json", {
         auth: {
           type: "oauth",
+          // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
           users: [{ username: "${TEST_USER}", password: "${TEST_PASS}" }],
         },
       });
@@ -96,6 +97,7 @@ describe("Config Loader", () => {
             command: "node",
             args: ["server.js"],
             env: {
+              // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
               API_TOKEN: "${MCP_TOKEN}",
               DEBUG: "true",
             },
@@ -121,6 +123,7 @@ describe("Config Loader", () => {
         mcpServers: {
           db: {
             command: "psql",
+            // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
             args: ["${HOST}:${PORT}"],
           },
         },

@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 
 /**
  * Tests for tools allowlist filtering logic.

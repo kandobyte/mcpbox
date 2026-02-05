@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
 import {
-  PORTS,
   mcpRequest,
+  PORTS,
   startServer,
   stopServer,
 } from "../../helpers/index.js";

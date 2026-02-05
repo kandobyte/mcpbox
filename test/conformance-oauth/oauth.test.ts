@@ -1,16 +1,16 @@
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
 import {
-  PORTS,
-  TEST_CLIENTS,
-  TEST_CREDENTIALS,
   generateCodeChallenge,
   generateCodeVerifier,
   get,
+  PORTS,
   post,
   postJson,
   startServer,
   stopServer,
+  TEST_CLIENTS,
+  TEST_CREDENTIALS,
 } from "../helpers/index.js";
 
 const BASE_URL = `http://localhost:${PORTS.OAUTH}`;
@@ -37,7 +37,7 @@ describe("OAuth Server", () => {
 
   describe("RFC 8414 - Authorization Server Metadata", () => {
     it("should return metadata at well-known endpoint", async () => {
-      const { status, data } = await get(
+      const { status } = await get(
         BASE_URL,
         "/.well-known/oauth-authorization-server",
       );
@@ -227,7 +227,7 @@ describe("OAuth Server", () => {
 
   describe("RFC 6749 - OAuth 2.0 Error Response Format", () => {
     it("should return error responses with required 'error' field", async () => {
-      const { status, data } = await post(BASE_URL, "/token", {
+      const { data } = await post(BASE_URL, "/token", {
         grant_type: "invalid_grant_type",
       });
       // RFC 6749 Section 5.2: error REQUIRED

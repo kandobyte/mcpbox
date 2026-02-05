@@ -26,12 +26,10 @@ import type {
 
 export class SqliteStore implements StateStore {
   private db: DatabaseSync;
-  private dbPath: string;
   private cleanupInterval: ReturnType<typeof setInterval>;
 
-  private constructor(db: DatabaseSync, dbPath: string) {
+  private constructor(db: DatabaseSync) {
     this.db = db;
-    this.dbPath = dbPath;
 
     // Periodic cleanup of expired tokens (every 5 minutes)
     this.cleanupInterval = setInterval(
@@ -48,7 +46,7 @@ export class SqliteStore implements StateStore {
     mkdirSync(dirname(dbPath), { recursive: true });
 
     const db = new DatabaseSync(dbPath);
-    const store = new SqliteStore(db, dbPath);
+    const store = new SqliteStore(db);
     store.initSchema();
 
     logger.info({ path: dbPath }, "SQLite store initialized");

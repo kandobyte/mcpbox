@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import {
-  StdioClientTransport,
   getDefaultEnvironment,
+  StdioClientTransport,
 } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { validateToolName } from "@modelcontextprotocol/sdk/shared/toolNameValidation.js";
 import type {
