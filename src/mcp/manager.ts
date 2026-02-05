@@ -41,7 +41,6 @@ export class McpManager {
 
   async start(configs: McpConfig[]): Promise<void> {
     if (configs.length === 0) {
-      logger.warn("No MCPs configured");
       return;
     }
 

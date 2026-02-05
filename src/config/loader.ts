@@ -2,10 +2,13 @@ import { existsSync, readFileSync } from "node:fs";
 import type { ZodError, ZodIssue } from "zod";
 import {
   type Config,
+  type LoadConfigResult,
   type McpConfig,
   type McpServerEntry,
   RawConfigSchema,
 } from "./schema.js";
+
+export type { LoadConfigResult } from "./schema.js";
 
 function substituteEnvVars(obj: unknown): unknown {
   if (typeof obj === "string") {
@@ -130,16 +133,36 @@ export function resolveConfigPath(configPath?: string): string {
   return configPath ?? "mcpbox.json";
 }
 
-export function loadConfig(configPath: string): Config {
+function checkConfig(config: Config): string[] {
+  const warnings: string[] = [];
+
+  if (!config.auth) {
+    warnings.push("No authentication configured");
+  }
+
+  if (config.mcps.length === 0) {
+    warnings.push("No MCPs configured");
+  }
+
+  if (config.storage && config.auth?.type !== "oauth") {
+    warnings.push(
+      "Storage config ignored: only used with OAuth authentication",
+    );
+  }
+
+  return warnings;
+}
+
+export function loadConfig(configPath: string): LoadConfigResult {
   if (!existsSync(configPath)) {
-    // Return defaults: no auth, no MCPs
-    return {
+    const config: Config = {
       server: { port: 8080 },
       auth: undefined,
       storage: undefined,
       log: undefined,
       mcps: [],
     };
+    return { config, warnings: checkConfig(config) };
   }
 
   const content = readFileSync(configPath, "utf-8");
@@ -165,11 +188,13 @@ export function loadConfig(configPath: string): Config {
   const raw = result.data;
   const mcps = raw.mcpServers ? parseMcpServers(raw.mcpServers) : [];
 
-  return {
+  const config: Config = {
     server: raw.server ?? { port: 8080 },
     auth: raw.auth,
     storage: raw.storage,
     log: raw.log,
     mcps,
   };
+
+  return { config, warnings: checkConfig(config) };
 }

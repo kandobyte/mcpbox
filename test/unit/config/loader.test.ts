@@ -39,7 +39,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.server.port, 9000);
       assert.strictEqual(config.auth, undefined);
@@ -55,7 +55,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.deepStrictEqual(config.mcps, []);
     });
@@ -74,7 +74,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
@@ -103,7 +103,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.mcps[0].name, "api-mcp");
       assert.strictEqual(config.mcps[0].env?.API_TOKEN, "secret-token");
@@ -126,7 +126,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.deepStrictEqual(config.mcps[0].args, ["localhost:5432"]);
 
@@ -155,7 +155,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
@@ -185,7 +185,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
@@ -202,7 +202,7 @@ describe("Config Loader", () => {
       const path = writeConfig("defaults.json", {});
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.server.port, 8080);
       assert.strictEqual(config.auth, undefined);
@@ -215,7 +215,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.server.port, 8080);
     });
@@ -241,7 +241,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.mcps.length, 3);
       const names = config.mcps.map((m) => m.name);
@@ -260,7 +260,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.mcps[0].command, "/usr/bin/mcp-server");
       assert.strictEqual(config.mcps[0].args, undefined);
@@ -278,7 +278,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.mcps[0].name, "github");
       assert.deepStrictEqual(config.mcps[0].tools, [
@@ -298,7 +298,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.mcps[0].tools, undefined);
     });
@@ -308,12 +308,15 @@ describe("Config Loader", () => {
     it("should return defaults when config file not found", async () => {
       const { loadConfig } = await import("../../../src/config/loader.js");
 
-      const config = loadConfig("/nonexistent/path/config.json");
+      const { config, warnings } = loadConfig("/nonexistent/path/config.json");
 
       assert.strictEqual(config.server.port, 8080);
       assert.strictEqual(config.auth, undefined);
       assert.strictEqual(config.storage, undefined);
       assert.deepStrictEqual(config.mcps, []);
+      assert.ok(
+        warnings.some((w) => w.includes("No authentication configured")),
+      );
     });
 
     it("should throw on invalid JSON", async () => {
@@ -400,7 +403,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.auth?.type, "apikey");
       if (config.auth?.type === "apikey") {
@@ -488,7 +491,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.log?.level, "debug");
       assert.strictEqual(config.log?.format, "json");
@@ -518,7 +521,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.storage?.type, "memory");
     });
@@ -532,7 +535,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
 
       assert.strictEqual(config.storage?.type, "sqlite");
       if (config.storage?.type === "sqlite") {
@@ -553,6 +556,68 @@ describe("Config Loader", () => {
     });
   });
 
+  describe("Config Warnings", () => {
+    it("should warn when storage is configured without oauth", async () => {
+      const path = writeConfig("warn-storage.json", {
+        auth: {
+          type: "apikey",
+          apiKey: "sk_live_abc123XYZ789",
+        },
+        storage: { type: "memory" },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { warnings } = loadConfig(path);
+
+      assert.ok(warnings.some((w) => w.includes("Storage config ignored")));
+    });
+
+    it("should warn when no auth configured", async () => {
+      const path = writeConfig("warn-no-auth.json", {
+        server: { port: 8080 },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { warnings } = loadConfig(path);
+
+      assert.ok(
+        warnings.some((w) => w.includes("No authentication configured")),
+      );
+    });
+
+    it("should not warn on storage with oauth", async () => {
+      const path = writeConfig("warn-storage-oauth.json", {
+        auth: {
+          type: "oauth",
+          users: [
+            {
+              username: "admin",
+              password:
+                "$2a$12$M0egBmBjQKt3iyHMPOV49.SpiTeJtsW6Ktjy3IeuXbxX5lCFHivW2",
+            },
+          ],
+        },
+        storage: { type: "memory" },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { warnings } = loadConfig(path);
+
+      assert.ok(!warnings.some((w) => w.includes("Storage config ignored")));
+    });
+
+    it("should warn when no MCPs configured", async () => {
+      const path = writeConfig("warn-no-mcps.json", {
+        server: { port: 8080 },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { warnings } = loadConfig(path);
+
+      assert.ok(warnings.some((w) => w.includes("No MCPs configured")));
+    });
+  });
+
   describe("OAuth Configurations", () => {
     it("should accept oauth with users only", async () => {
       const path = writeConfig("oauth-users.json", {
@@ -563,7 +628,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
       assert.strictEqual(config.auth?.type, "oauth");
     });
 
@@ -576,7 +641,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
       assert.strictEqual(config.auth?.type, "oauth");
     });
 
@@ -595,7 +660,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
       assert.strictEqual(config.auth?.type, "oauth");
     });
 
@@ -614,7 +679,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
       assert.strictEqual(config.auth?.type, "oauth");
     });
 
@@ -638,7 +703,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
         assert.strictEqual(config.auth.clients?.length, 2);
@@ -655,7 +720,7 @@ describe("Config Loader", () => {
       });
 
       const { loadConfig } = await import("../../../src/config/loader.js");
-      const config = loadConfig(path);
+      const { config } = loadConfig(path);
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
         assert.strictEqual(config.auth.issuer, "https://example.com");

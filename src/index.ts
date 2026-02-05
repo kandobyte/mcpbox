@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-import { loadConfig, resolveConfigPath } from "./config/loader.js";
+import {
+  type LoadConfigResult,
+  loadConfig,
+  resolveConfigPath,
+} from "./config/loader.js";
 import { configureLogger, logger } from "./logger.js";
 import { createServer } from "./server.js";
 import { VERSION } from "./version.js";
@@ -61,9 +65,10 @@ if (args.version) {
 
 const configPath = resolveConfigPath(args.config);
 
-let config: ReturnType<typeof loadConfig>;
+let config: LoadConfigResult["config"];
+let warnings: LoadConfigResult["warnings"];
 try {
-  config = loadConfig(configPath);
+  ({ config, warnings } = loadConfig(configPath));
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   // Log to stderr directly since logger config isn't loaded yet
@@ -81,6 +86,10 @@ logger.info(
   },
   "Config loaded",
 );
+
+for (const warning of warnings) {
+  logger.warn(warning);
+}
 
 let closeServer: (() => Promise<void>) | undefined;
 let isShuttingDown = false;

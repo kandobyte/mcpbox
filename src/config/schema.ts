@@ -196,3 +196,8 @@ export type StorageConfig = z.infer<typeof StorageConfigSchema>;
 export type RawConfig = z.infer<typeof RawConfigSchema>;
 export type McpConfig = z.infer<typeof McpConfigSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
+
+export interface LoadConfigResult {
+  config: Config;
+  warnings: string[];
+}

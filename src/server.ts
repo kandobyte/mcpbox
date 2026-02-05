@@ -62,11 +62,6 @@ export async function createServer(config: Config) {
     );
   }
 
-  // Warn if storage is configured but not used
-  if (config.storage && auth?.type !== "oauth") {
-    logger.warn("Storage config ignored: only used with OAuth authentication");
-  }
-
   const app = new Hono();
 
   // Request logging middleware (applies to all routes)
@@ -294,12 +289,9 @@ export async function createServer(config: Config) {
       hostname: "0.0.0.0",
     },
     () => {
-      // Log authentication configuration
-      if (!auth) {
-        logger.warn("No authentication configured");
-      } else if (auth.type === "apikey") {
+      if (auth?.type === "apikey") {
         logger.info("Authentication: API key");
-      } else if (auth.type === "oauth") {
+      } else if (auth?.type === "oauth") {
         const userCount = auth.users?.length ?? 0;
         const clientCount = auth.clients?.length ?? 0;
         const dynamicReg = auth.dynamic_registration ? "enabled" : "disabled";
