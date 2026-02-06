@@ -303,15 +303,30 @@ export class OAuthServer {
     const responseType = query.get("response_type");
     const state = query.get("state") ?? undefined;
     const codeChallenge = query.get("code_challenge") ?? undefined;
-    const codeChallengeMethod = query.get("code_challenge_method") ?? "S256";
+    const codeChallengeMethod = query.get("code_challenge_method") ?? undefined;
     const scope = query.get("scope") ?? undefined;
 
     // Validate required params
-    if (!clientId || !redirectUri || responseType !== "code") {
+    if (
+      !clientId ||
+      !redirectUri ||
+      responseType !== "code" ||
+      !codeChallenge
+    ) {
       return c.json(
         {
           error: "invalid_request",
           error_description: "Missing required parameters",
+        },
+        400,
+      );
+    }
+
+    if (codeChallengeMethod !== "S256") {
+      return c.json(
+        {
+          error: "invalid_request",
+          error_description: "Only S256 code challenge method is supported",
         },
         400,
       );
@@ -1029,42 +1044,37 @@ export class OAuthServer {
       );
     }
 
-    // Validate PKCE
-    if (authCode.codeChallenge) {
-      if (!codeVerifier) {
-        return c.json(
-          {
-            error: "invalid_grant",
-            error_description: "Code verifier required",
-          },
-          400,
-        );
-      }
+    // Validate PKCE (mandatory per OAuth 2.1)
+    if (!authCode.codeChallenge) {
+      return c.json(
+        {
+          error: "invalid_grant",
+          error_description: "Code challenge missing from authorization code",
+        },
+        400,
+      );
+    }
 
-      if (authCode.codeChallengeMethod !== "S256") {
-        return c.json(
-          {
-            error: "invalid_request",
-            error_description: "Only S256 code challenge method is supported",
-          },
-          400,
-        );
-      }
+    if (!codeVerifier) {
+      return c.json(
+        {
+          error: "invalid_grant",
+          error_description: "Code verifier required",
+        },
+        400,
+      );
+    }
 
-      const hash = createHash("sha256")
-        .update(codeVerifier)
-        .digest("base64url");
-      const valid = hash === authCode.codeChallenge;
+    const hash = createHash("sha256").update(codeVerifier).digest("base64url");
 
-      if (!valid) {
-        return c.json(
-          {
-            error: "invalid_grant",
-            error_description: "Invalid code verifier",
-          },
-          400,
-        );
-      }
+    if (hash !== authCode.codeChallenge) {
+      return c.json(
+        {
+          error: "invalid_grant",
+          error_description: "Invalid code verifier",
+        },
+        400,
+      );
     }
 
     this.authorizationCodes.delete(code);

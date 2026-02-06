@@ -1,6 +1,8 @@
 # AGENTS.md
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `docs:`)
+- Project Implements the [MCP authorization spec (2025-11-25)](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- Project implements its own authorization server — spec requirements that assume a separate/shared authorization server (e.g., audience binding, resource indicators) do not apply
 
 ## Documentation Guidelines
 

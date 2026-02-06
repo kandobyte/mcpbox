@@ -37,6 +37,16 @@ describe("OAuth Server", () => {
     await stopServer();
   });
 
+  const validChallenge = generateCodeChallenge(generateCodeVerifier());
+
+  const validAuthorizeParams = {
+    client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+    redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
+    response_type: "code",
+    code_challenge: validChallenge,
+    code_challenge_method: "S256",
+  };
+
   describe("RFC 8414 - Authorization Server Metadata", () => {
     it("should return metadata at well-known endpoint", async () => {
       const { status } = await get(
@@ -369,22 +379,13 @@ describe("OAuth Server", () => {
 
   describe("RFC 7636 - PKCE", () => {
     it("should accept S256 code_challenge_method", async () => {
-      const verifier = generateCodeVerifier();
-      const challenge = generateCodeChallenge(verifier);
-
-      const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
-        response_type: "code",
-        code_challenge: challenge,
-        code_challenge_method: "S256",
-      });
+      const params = new URLSearchParams(validAuthorizeParams);
 
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       assert.strictEqual(res.status, 200);
     });
 
-    it("should accept plain code_challenge_method", async () => {
+    it("should reject plain code_challenge_method", async () => {
       const verifier = generateCodeVerifier();
 
       const params = new URLSearchParams({
@@ -396,7 +397,9 @@ describe("OAuth Server", () => {
       });
 
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
-      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(data.error, "invalid_request");
     });
 
     it("should generate valid code_verifier format", () => {
@@ -567,11 +570,34 @@ describe("OAuth Server", () => {
       assert.strictEqual(data.error, "invalid_request");
     });
 
+    it("should reject authorize without code_challenge (PKCE required)", async () => {
+      const params = new URLSearchParams({
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
+        response_type: "code",
+      });
+      const res = await fetch(`${BASE_URL}/authorize?${params}`);
+      const data = await res.json();
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(data.error, "invalid_request");
+    });
+
+    it("should reject authorize with code_challenge_method other than S256", async () => {
+      const params = new URLSearchParams({
+        ...validAuthorizeParams,
+        code_challenge_method: "plain",
+      });
+      const res = await fetch(`${BASE_URL}/authorize?${params}`);
+      const data = await res.json();
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(data.error, "invalid_request");
+    });
+
     it("should reject authorize with unknown client", async () => {
       const params = new URLSearchParams({
+        ...validAuthorizeParams,
         client_id: "unknown",
         redirect_uri: "http://localhost:3000/callback",
-        response_type: "code",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       const data = await res.json();
@@ -581,9 +607,8 @@ describe("OAuth Server", () => {
 
     it("should reject authorize with wrong redirect_uri", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        ...validAuthorizeParams,
         redirect_uri: "http://evil.com/callback",
-        response_type: "code",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       const data = await res.json();
@@ -592,11 +617,7 @@ describe("OAuth Server", () => {
     });
 
     it("should show login form for valid authorize request", async () => {
-      const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
-        response_type: "code",
-      });
+      const params = new URLSearchParams(validAuthorizeParams);
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       assert.strictEqual(res.status, 200);
       const html = await res.text();
@@ -607,9 +628,7 @@ describe("OAuth Server", () => {
 
     it("should include state in login form if provided", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
-        response_type: "code",
+        ...validAuthorizeParams,
         state: "test-state-123",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
@@ -737,9 +756,8 @@ describe("OAuth Server", () => {
   describe("Redirect URI Validation", () => {
     it("should reject mismatched redirect URI", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        ...validAuthorizeParams,
         redirect_uri: "http://localhost:9999/different",
-        response_type: "code",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       const data = await res.json();
@@ -748,20 +766,15 @@ describe("OAuth Server", () => {
     });
 
     it("should accept exact redirect URI match", async () => {
-      const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
-        response_type: "code",
-      });
+      const params = new URLSearchParams(validAuthorizeParams);
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       assert.strictEqual(res.status, 200);
     });
 
     it("should reject redirect URI with different path", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        ...validAuthorizeParams,
         redirect_uri: "http://localhost:3000/other-callback",
-        response_type: "code",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
       assert.strictEqual(res.status, 400);
