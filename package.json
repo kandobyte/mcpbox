@@ -1,6 +1,6 @@
 {
   "name": "mcpbox",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A lightweight gateway that exposes local stdio-based MCP servers via Streamable HTTP",
   "main": "dist/index.js",
   "bin": {
