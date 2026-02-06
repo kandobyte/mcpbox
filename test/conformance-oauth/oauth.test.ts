@@ -439,7 +439,7 @@ describe("OAuth Server", () => {
       const html = await authRes.text();
 
       // Extract session_id from form
-      const sessionIdMatch = html.match(/name="session_id" value="([^"]+)"/);
+      const sessionIdMatch = html.match(/name="session_id"\s+value="([^"]+)"/);
       assert.ok(sessionIdMatch, "Session ID should be in form");
       const sessionId = sessionIdMatch[1];
 
@@ -493,7 +493,7 @@ describe("OAuth Server", () => {
 
       const authRes = await fetch(`${BASE_URL}/authorize?${authParams}`);
       const html = await authRes.text();
-      const sessionIdMatch = html.match(/name="session_id" value="([^"]+)"/);
+      const sessionIdMatch = html.match(/name="session_id"\s+value="([^"]+)"/);
       assert.ok(sessionIdMatch, "Session ID should be in form");
       const sessionId = sessionIdMatch[1];
 
