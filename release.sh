@@ -20,8 +20,14 @@ npm pkg set version="$VERSION"
 # Update lockfile
 npm install
 
-# Format to pass CI checks
-npm run format
+# Audit, lint & test
+npm audit --audit-level=critical
+npm run check
+npm test
+npm run test:conformance
+
+# Build
+npm run build
 
 # Commit and tag
 git add package.json package-lock.json
