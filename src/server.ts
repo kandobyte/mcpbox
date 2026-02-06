@@ -5,6 +5,9 @@ import { type Context, Hono } from "hono";
 import { LOGO_PNG_BASE64 } from "./assets.js";
 import { checkApiKey } from "./auth/apikey.js";
 import { OAuthServer } from "./auth/oauth.js";
+import { GitHubIdentityProvider } from "./auth/providers/github.js";
+import type { IdentityProvider } from "./auth/providers/identity-provider.js";
+import { LocalIdentityProvider } from "./auth/providers/local.js";
 import type { Config } from "./config/types.js";
 import { logger } from "./logger.js";
 import {
@@ -51,10 +54,39 @@ export async function createServer(config: Config) {
     apiKey = auth.apiKey;
   } else if (auth?.type === "oauth") {
     store = await createStore(config);
+
+    // Build identity providers from config
+    const providers: IdentityProvider[] = [];
+    if (auth.identity_providers) {
+      for (const idpConfig of auth.identity_providers) {
+        switch (idpConfig.type) {
+          case "local":
+            providers.push(new LocalIdentityProvider(idpConfig.users));
+            break;
+          case "github":
+            providers.push(
+              new GitHubIdentityProvider({
+                clientId: idpConfig.client_id,
+                clientSecret: idpConfig.client_secret,
+                allowedOrgs: idpConfig.allowed_orgs,
+                allowedUsers: idpConfig.allowed_users,
+              }),
+            );
+            break;
+          default: {
+            const _exhaustive: never = idpConfig;
+            throw new Error(
+              `Unknown identity provider type: ${(_exhaustive as { type: string }).type}`,
+            );
+          }
+        }
+      }
+    }
+
     oauthServer = new OAuthServer(
       {
         issuer: auth.issuer ?? `http://localhost:${config.server.port}`,
-        users: auth.users,
+        providers,
         clients: auth.clients,
         dynamicRegistration: auth.dynamic_registration,
       },
@@ -124,6 +156,13 @@ export async function createServer(config: Config) {
       const query = new URL(c.req.url).searchParams;
       const body = await c.req.text();
       return oauthServer.handleAuthorize(c, query, body);
+    });
+
+    // Identity provider callback (e.g. GitHub OAuth)
+    app.get("/callback/:provider", async (c) => {
+      const provider = c.req.param("provider");
+      const query = new URL(c.req.url).searchParams;
+      return oauthServer.handleIdPCallback(c, provider, query);
     });
 
     // Token endpoint
@@ -292,12 +331,12 @@ export async function createServer(config: Config) {
       if (auth?.type === "apikey") {
         logger.info("Authentication: API key");
       } else if (auth?.type === "oauth") {
-        const userCount = auth.users?.length ?? 0;
+        const providerCount = auth.identity_providers?.length ?? 0;
         const clientCount = auth.clients?.length ?? 0;
         const dynamicReg = auth.dynamic_registration ? "enabled" : "disabled";
         logger.info(
           {
-            users: userCount,
+            identityProviders: providerCount,
             clients: clientCount,
             dynamicRegistration: dynamicReg,
           },

@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Context } from "hono";
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import type { OAuthClient } from "../config/types.js";
 import { logger } from "../logger.js";
 import type { StateStore, StoredClient } from "../storage/types.js";
@@ -9,12 +9,17 @@ import {
   isRedirectUriAllowed,
   parseBearerToken,
   verifyClientSecret,
-  verifyPassword,
 } from "./oauth-utils.js";
+import type {
+  AuthenticatedUser,
+  FormIdentityProvider,
+  IdentityProvider,
+  RedirectIdentityProvider,
+} from "./providers/identity-provider.js";
 
 export interface OAuthConfig {
   issuer: string;
-  users?: Array<{ username: string; password: string }>; // For Authorization Code grant
+  providers: IdentityProvider[];
   clients?: OAuthClient[]; // Pre-registered clients with explicit grant_type
   dynamicRegistration?: boolean; // Allow /register endpoint
 }
@@ -39,6 +44,7 @@ interface PendingAuth {
   codeChallengeMethod?: string;
   scope?: string;
   resource?: string;
+  providerId?: string; // Tracks which identity provider is handling this session
 }
 
 export class OAuthServer {
@@ -53,12 +59,9 @@ export class OAuthServer {
     this.store = store;
 
     // Validate configuration
-    if (
-      config.dynamicRegistration &&
-      (!config.users || config.users.length === 0)
-    ) {
+    if (config.dynamicRegistration && config.providers.length === 0) {
       throw new Error(
-        "Invalid OAuth configuration: dynamic_registration requires users to be configured. " +
+        "Invalid OAuth configuration: dynamic_registration requires identity_providers to be configured. " +
           "Dynamic clients use Authorization Code flow which requires user login.",
       );
     }
@@ -134,10 +137,10 @@ export class OAuthServer {
   // RFC 8414: Authorization Server Metadata
   getAuthorizationServerMetadata(): object {
     const grantTypes: string[] = [];
-    const hasUsers = this.config.users && this.config.users.length > 0;
+    const hasProviders = this.config.providers.length > 0;
 
-    // Authorization Code grant requires users
-    if (hasUsers) {
+    // Authorization Code grant requires identity providers
+    if (hasProviders) {
       grantTypes.push("authorization_code");
       grantTypes.push("refresh_token"); // Refresh tokens for Authorization Code flow
     }
@@ -157,8 +160,8 @@ export class OAuthServer {
       scopes_supported: ["mcp:tools"],
     };
 
-    // Only advertise authorization endpoint if users are configured
-    if (hasUsers) {
+    // Only advertise authorization endpoint if identity providers are configured
+    if (hasProviders) {
       metadata.authorization_endpoint = `${this.config.issuer}/authorize`;
       metadata.response_types_supported = ["code"];
       metadata.code_challenge_methods_supported = ["S256"];
@@ -279,13 +282,13 @@ export class OAuthServer {
     query: URLSearchParams,
     body?: string,
   ): Promise<Response> {
-    // Authorization Code flow requires users to be configured
-    if (!this.config.users || this.config.users.length === 0) {
+    // Authorization Code flow requires identity providers to be configured
+    if (this.config.providers.length === 0) {
       return c.json(
         {
           error: "invalid_request",
           error_description:
-            "Authorization Code flow not available. Use Client Credentials grant or configure users.",
+            "Authorization Code flow not available. Use Client Credentials grant or configure identity_providers.",
         },
         400,
       );
@@ -333,7 +336,7 @@ export class OAuthServer {
       );
     }
 
-    // If POST with credentials, process login
+    // If POST with credentials, process form login
     if (c.req.method === "POST" && body) {
       const formData = new URLSearchParams(body);
       const username = formData.get("username");
@@ -349,12 +352,19 @@ export class OAuthServer {
         return c.html("<html><body>Session expired</body></html>", 400);
       }
 
-      // Validate credentials (supports plain text or bcrypt hashed passwords)
-      const user = this.config.users.find(
-        (u) =>
-          u.username === username && verifyPassword(password ?? "", u.password),
+      // Try each form-based identity provider sequentially;
+      const formProviders = this.config.providers.filter(
+        (p): p is FormIdentityProvider => p.type === "form",
       );
-      if (!user) {
+      let authenticatedUser: AuthenticatedUser | null = null;
+      for (const provider of formProviders) {
+        authenticatedUser = await provider.validate(
+          username ?? "",
+          password ?? "",
+        );
+        if (authenticatedUser) break;
+      }
+      if (!authenticatedUser) {
         return this.showLoginForm(
           c,
           pending,
@@ -363,58 +373,32 @@ export class OAuthServer {
         );
       }
 
-      // Generate authorization code
-      const code = randomBytes(32).toString("hex");
-      this.authorizationCodes.set(code, {
-        code,
-        clientId: pending.clientId,
-        redirectUri: pending.redirectUri,
-        codeChallenge: pending.codeChallenge,
-        codeChallengeMethod: pending.codeChallengeMethod,
-        scope: pending.scope,
-        expiresAt: Date.now() + 10 * 60 * 1000,
-        userId: user.username,
-      });
-
-      this.pendingAuths.delete(sessionId);
-
-      const redirectUrl = new URL(pending.redirectUri);
-      redirectUrl.searchParams.set("code", code);
-      if (pending.state) {
-        redirectUrl.searchParams.set("state", pending.state);
-      }
-
-      logger.info(
-        {
-          clientId: pending.clientId,
-          userId: user.username,
-        },
-        "Authorization code issued",
+      return this.issueAuthorizationCode(
+        c,
+        pending,
+        sessionId,
+        authenticatedUser,
       );
-
-      return c.redirect(redirectUrl.toString(), 302);
     }
 
-    // GET request - show login form
-    const sessionId = randomUUID();
-    this.pendingAuths.set(sessionId, {
-      clientId,
-      clientName: client.client_name,
-      redirectUri,
-      state,
-      codeChallenge,
-      codeChallengeMethod,
-      scope,
-    });
+    // GET request — check for idp param to initiate redirect flow
+    const idp = query.get("idp");
+    if (idp) {
+      const redirectProvider = this.config.providers.find(
+        (p): p is RedirectIdentityProvider =>
+          p.type === "redirect" && p.id === idp,
+      );
+      if (!redirectProvider) {
+        return c.json(
+          {
+            error: "invalid_request",
+            error_description: `Unknown identity provider: ${idp}`,
+          },
+          400,
+        );
+      }
 
-    setTimeout(
-      () => this.pendingAuths.delete(sessionId),
-      10 * 60 * 1000,
-    ).unref();
-
-    return this.showLoginForm(
-      c,
-      {
+      return this.redirectToProvider(c, redirectProvider, {
         clientId,
         clientName: client.client_name,
         redirectUri,
@@ -422,9 +406,162 @@ export class OAuthServer {
         codeChallenge,
         codeChallengeMethod,
         scope,
-      },
-      sessionId,
+      });
+    }
+
+    // GET request without idp — show login form (or auto-redirect for single provider)
+    const pendingAuth: PendingAuth = {
+      clientId,
+      clientName: client.client_name,
+      redirectUri,
+      state,
+      codeChallenge,
+      codeChallengeMethod,
+      scope,
+    };
+
+    // If only one redirect provider and no form providers, redirect immediately
+    const formProviders = this.config.providers.filter(
+      (p) => p.type === "form",
     );
+    const redirectProviders = this.config.providers.filter(
+      (p): p is RedirectIdentityProvider => p.type === "redirect",
+    );
+    if (formProviders.length === 0 && redirectProviders.length === 1) {
+      return this.redirectToProvider(c, redirectProviders[0], pendingAuth);
+    }
+
+    const sessionId = randomUUID();
+    this.pendingAuths.set(sessionId, pendingAuth);
+
+    setTimeout(
+      () => this.pendingAuths.delete(sessionId),
+      10 * 60 * 1000,
+    ).unref();
+
+    return this.showLoginForm(c, pendingAuth, sessionId);
+  }
+
+  // Issue an authorization code and redirect to the client callback
+  private issueAuthorizationCode(
+    c: Context,
+    pending: PendingAuth,
+    sessionId: string,
+    user: AuthenticatedUser,
+  ): Response {
+    const code = randomBytes(32).toString("hex");
+    this.authorizationCodes.set(code, {
+      code,
+      clientId: pending.clientId,
+      redirectUri: pending.redirectUri,
+      codeChallenge: pending.codeChallenge,
+      codeChallengeMethod: pending.codeChallengeMethod,
+      scope: pending.scope,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      userId: user.id,
+    });
+
+    this.pendingAuths.delete(sessionId);
+
+    const redirectUrl = new URL(pending.redirectUri);
+    redirectUrl.searchParams.set("code", code);
+    if (pending.state) {
+      redirectUrl.searchParams.set("state", pending.state);
+    }
+
+    logger.info(
+      { clientId: pending.clientId, userId: user.id },
+      "Authorization code issued",
+    );
+
+    return c.redirect(redirectUrl.toString(), 302);
+  }
+
+  // Create a pending auth session and redirect to an external identity provider
+  private redirectToProvider(
+    c: Context,
+    provider: RedirectIdentityProvider,
+    pending: PendingAuth,
+  ): Response {
+    const sessionId = randomUUID();
+    pending.providerId = provider.id;
+    this.pendingAuths.set(sessionId, pending);
+
+    setTimeout(
+      () => this.pendingAuths.delete(sessionId),
+      10 * 60 * 1000,
+    ).unref();
+
+    const callbackUrl = `${this.config.issuer}/callback/${provider.id}`;
+    const authUrl = provider.getAuthorizationUrl(callbackUrl, sessionId);
+    return c.redirect(authUrl, 302);
+  }
+
+  // Handle callback from external identity providers
+  async handleIdPCallback(
+    c: Context,
+    providerId: string,
+    query: URLSearchParams,
+  ): Promise<Response> {
+    const state = query.get("state");
+    if (!state) {
+      return c.json(
+        {
+          error: "invalid_request",
+          error_description: "Missing state parameter",
+        },
+        400,
+      );
+    }
+
+    const pending = this.pendingAuths.get(state);
+    if (!pending) {
+      return c.json(
+        {
+          error: "invalid_request",
+          error_description: "Invalid or expired session",
+        },
+        400,
+      );
+    }
+
+    if (pending.providerId !== providerId) {
+      return c.json(
+        {
+          error: "invalid_request",
+          error_description: "Provider mismatch",
+        },
+        400,
+      );
+    }
+
+    const provider = this.config.providers.find(
+      (p): p is RedirectIdentityProvider =>
+        p.type === "redirect" && p.id === providerId,
+    );
+    if (!provider) {
+      return c.json(
+        {
+          error: "invalid_request",
+          error_description: `Unknown identity provider: ${providerId}`,
+        },
+        400,
+      );
+    }
+
+    const user = await provider.handleCallback(query);
+    if (!user) {
+      this.pendingAuths.delete(state);
+      return c.json(
+        {
+          error: "access_denied",
+          error_description: "Authentication failed",
+        },
+        403,
+      );
+    }
+
+    return this.issueAuthorizationCode(c, pending, state, user);
   }
 
   private showLoginForm(
@@ -436,20 +573,40 @@ export class OAuthServer {
     const displayName = pending.clientName ?? pending.clientId;
     const scopeDisplay = pending.scope ?? "default";
 
-    // Build form action URL
-    const formAction = new URL("/authorize", "http://localhost");
-    formAction.searchParams.set("client_id", pending.clientId);
-    formAction.searchParams.set("redirect_uri", pending.redirectUri);
-    formAction.searchParams.set("response_type", "code");
-    if (pending.state) formAction.searchParams.set("state", pending.state);
+    // Build base authorize URL (used for both form action and redirect links)
+    const authorizeParams = new URLSearchParams();
+    authorizeParams.set("client_id", pending.clientId);
+    authorizeParams.set("redirect_uri", pending.redirectUri);
+    authorizeParams.set("response_type", "code");
+    if (pending.state) authorizeParams.set("state", pending.state);
     if (pending.codeChallenge)
-      formAction.searchParams.set("code_challenge", pending.codeChallenge);
+      authorizeParams.set("code_challenge", pending.codeChallenge);
     if (pending.codeChallengeMethod)
-      formAction.searchParams.set(
-        "code_challenge_method",
-        pending.codeChallengeMethod,
-      );
-    if (pending.scope) formAction.searchParams.set("scope", pending.scope);
+      authorizeParams.set("code_challenge_method", pending.codeChallengeMethod);
+    if (pending.scope) authorizeParams.set("scope", pending.scope);
+
+    const formAction = `/authorize?${authorizeParams.toString()}`;
+
+    const formProviders = this.config.providers.filter(
+      (p) => p.type === "form",
+    );
+    const redirectProviders = this.config.providers.filter(
+      (p): p is RedirectIdentityProvider => p.type === "redirect",
+    );
+
+    // Build redirect provider buttons
+    const redirectButtons = redirectProviders.map((p) => {
+      const idpParams = new URLSearchParams(authorizeParams);
+      idpParams.set("idp", p.id);
+      return html`<a
+        class="idp-button"
+        href="/authorize?${idpParams.toString()}"
+        >${raw(p.buttonLabel)}</a
+      >`;
+    });
+
+    const hasForm = formProviders.length > 0;
+    const hasRedirect = redirectProviders.length > 0;
 
     const page = html`
       <!doctype html>
@@ -488,7 +645,8 @@ export class OAuthServer {
               max-width: 380px;
             }
             h1 {
-              font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+              font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas,
+                monospace;
               font-size: 28px;
               font-weight: 600;
               color: #1c1917;
@@ -567,6 +725,45 @@ export class OAuthServer {
               color: #6b6560;
               margin-top: 24px;
             }
+            .divider {
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              margin: 24px 0;
+              color: #a8a29e;
+              font-size: 13px;
+            }
+            .divider::before,
+            .divider::after {
+              content: "";
+              flex: 1;
+              height: 1px;
+              background: #e7e5e4;
+            }
+            .idp-button {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 12px 16px;
+              font-size: 16px;
+              font-weight: 500;
+              background: #24292f;
+              color: #fff;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              text-align: center;
+              text-decoration: none;
+              transition: background 0.15s ease;
+            }
+            .idp-button:hover {
+              background: #32383f;
+            }
+            .idp-buttons {
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+            }
           </style>
         </head>
         <body>
@@ -578,34 +775,45 @@ export class OAuthServer {
               your tools
             </p>
             ${error ? html`<p class="error">${error}</p>` : ""}
-            <form
-              method="POST"
-              action="${formAction.pathname}${formAction.search}"
-            >
-              <input type="hidden" name="session_id" value="${sessionId}" />
-              <div class="field">
-                <label for="username">Username</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  required
-                  autofocus
-                  autocomplete="username"
-                />
-              </div>
-              <div class="field">
-                <label for="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  required
-                  autocomplete="current-password"
-                />
-              </div>
-              <button type="submit">Continue</button>
-            </form>
+            ${
+              hasRedirect
+                ? html`<div class="idp-buttons">${redirectButtons}</div>`
+                : ""
+            }
+            ${hasForm && hasRedirect ? html`<div class="divider">or</div>` : ""}
+            ${
+              hasForm
+                ? html`<form method="POST" action="${formAction}">
+                  <input
+                    type="hidden"
+                    name="session_id"
+                    value="${sessionId}"
+                  />
+                  <div class="field">
+                    <label for="username">Username</label>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      required
+                      autofocus
+                      autocomplete="username"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="password">Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      required
+                      autocomplete="current-password"
+                    />
+                  </div>
+                  <button type="submit">Continue</button>
+                </form>`
+                : ""
+            }
             <p class="scope">Scope: ${scopeDisplay}</p>
           </div>
         </body>

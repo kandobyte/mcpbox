@@ -37,6 +37,40 @@ export const OAuthUserSchema = z
   .strict();
 
 /**
+ * Local identity provider — users defined in config.
+ * @package
+ */
+export const LocalIdPSchema = z
+  .object({
+    type: z.literal("local"),
+    users: z.array(OAuthUserSchema).min(1, "At least one user is required"),
+  })
+  .strict();
+
+/**
+ * GitHub identity provider — OAuth web flow.
+ * @package
+ */
+export const GitHubIdPSchema = z
+  .object({
+    type: z.literal("github"),
+    client_id: z.string().min(1, "GitHub client_id is required"),
+    client_secret: z.string().min(1, "GitHub client_secret is required"),
+    allowed_orgs: z.array(z.string()).optional(),
+    allowed_users: z.array(z.string()).optional(),
+  })
+  .strict();
+
+/**
+ * Identity provider configuration — discriminated union.
+ * @package
+ */
+export const IdentityProviderSchema = z.discriminatedUnion("type", [
+  LocalIdPSchema,
+  GitHubIdPSchema,
+]);
+
+/**
  * OAuth client configuration
  * @package
  */
@@ -95,22 +129,33 @@ export const AuthConfigSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("oauth"),
       issuer: z.string().url("Invalid issuer URL").optional(),
-      users: z.array(OAuthUserSchema).optional(),
+      identity_providers: z.array(IdentityProviderSchema).optional(),
       clients: z.array(OAuthClientSchema).optional(),
       dynamic_registration: z.boolean().optional(),
     })
     .strict()
     .refine(
       (oauth) => {
-        // Must have at least users, clients, or dynamic_registration
-        const hasUsers = oauth.users && oauth.users.length > 0;
+        const hasProviders =
+          oauth.identity_providers && oauth.identity_providers.length > 0;
         const hasClients = oauth.clients && oauth.clients.length > 0;
         const hasDynamicReg = oauth.dynamic_registration === true;
-        return hasUsers || hasClients || hasDynamicReg;
+        return hasProviders || hasClients || hasDynamicReg;
       },
       {
         message:
-          "OAuth requires at least one of: users, clients, or dynamic_registration enabled",
+          "OAuth requires at least one of: identity_providers, clients, or dynamic_registration enabled",
+      },
+    )
+    .refine(
+      (oauth) => {
+        // dynamic_registration requires at least one identity provider for user login
+        if (!oauth.dynamic_registration) return true;
+        return oauth.identity_providers && oauth.identity_providers.length > 0;
+      },
+      {
+        message:
+          "dynamic_registration requires identity_providers to be configured for user login",
       },
     ),
 ]);
@@ -199,6 +244,9 @@ export const ConfigSchema = z.object({
 export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;
 export type OAuthUser = z.infer<typeof OAuthUserSchema>;
 export type OAuthClient = z.infer<typeof OAuthClientSchema>;
+export type IdentityProviderConfig = z.infer<typeof IdentityProviderSchema>;
+export type LocalIdPConfig = z.infer<typeof LocalIdPSchema>;
+export type GitHubIdPConfig = z.infer<typeof GitHubIdPSchema>;
 export type AuthConfig = z.infer<typeof AuthConfigSchema>;
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type LogConfig = z.infer<typeof LogConfigSchema>;

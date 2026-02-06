@@ -24,12 +24,29 @@
 
     // OAuth settings (when type: oauth)
     "issuer": "https://mcp.example.com", // required for public access - your public URL
-    "users": [
-      // passwords can be plain text or bcrypt hash
+
+    // Identity providers for user authentication
+    // Supported types: local (username/password), github (GitHub OAuth)
+    // Multiple providers can be configured
+    "identity_providers": [
       {
-        "username": "${MCPBOX_USER}",
-        "password": "${MCPBOX_PASSWORD}"
+        "type": "local",
+        "users": [
+          // passwords can be plain text or bcrypt hash
+          {
+            "username": "${MCPBOX_USER}",
+            "password": "${MCPBOX_PASSWORD}"
+          }
+        ]
       }
+      // GitHub OAuth provider
+      // {
+      //   "type": "github",
+      //   "client_id": "${GITHUB_OAUTH_CLIENT_ID}",
+      //   "client_secret": "${GITHUB_OAUTH_CLIENT_SECRET}",
+      //   "allowed_orgs": ["my-org"],    // optional: restrict to org members
+      //   "allowed_users": ["octocat"]   // optional: restrict to specific users
+      // }
     ],
     "dynamic_registration": true // default: false - allow clients to self-register
 

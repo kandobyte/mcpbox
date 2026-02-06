@@ -2,6 +2,7 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import {
   AuthConfigSchema,
+  IdentityProviderSchema,
   LogConfigSchema,
   McpServerEntrySchema,
   OAuthClientSchema,
@@ -87,6 +88,68 @@ describe("Config Schemas", () => {
     it("should reject missing fields", () => {
       const result = OAuthUserSchema.safeParse({
         username: "admin",
+      });
+      assert.strictEqual(result.success, false);
+    });
+  });
+
+  describe("IdentityProviderSchema", () => {
+    it("should accept local provider with users", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "local",
+        users: [{ username: "admin", password: "pass" }],
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should reject local provider without users", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "local",
+        users: [],
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should accept github provider", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "github",
+        client_id: "gh-id",
+        client_secret: "gh-secret",
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should accept github provider with allowed_orgs and allowed_users", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "github",
+        client_id: "gh-id",
+        client_secret: "gh-secret",
+        allowed_orgs: ["myorg"],
+        allowed_users: ["admin"],
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should reject github provider without client_id", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "github",
+        client_secret: "gh-secret",
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should reject github provider without client_secret", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "github",
+        client_id: "gh-id",
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should reject unknown provider type", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "google",
+        client_id: "id",
       });
       assert.strictEqual(result.success, false);
     });
@@ -212,10 +275,15 @@ describe("Config Schemas", () => {
     });
 
     describe("oauth type", () => {
-      it("should accept oauth with users", () => {
+      it("should accept oauth with identity_providers", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
-          users: [{ username: "admin", password: "pass123" }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "pass123" }],
+            },
+          ],
         });
         assert.strictEqual(result.success, true);
       });
@@ -234,24 +302,43 @@ describe("Config Schemas", () => {
         assert.strictEqual(result.success, true);
       });
 
-      it("should accept oauth with dynamic_registration", () => {
+      it("should accept oauth with dynamic_registration and identity_providers", () => {
+        const result = AuthConfigSchema.safeParse({
+          type: "oauth",
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "pass" }],
+            },
+          ],
+          dynamic_registration: true,
+        });
+        assert.strictEqual(result.success, true);
+      });
+
+      it("should reject oauth with dynamic_registration but no identity_providers", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
           dynamic_registration: true,
         });
-        assert.strictEqual(result.success, true);
+        assert.strictEqual(result.success, false);
       });
 
       it("should accept oauth with issuer", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
           issuer: "https://auth.example.com",
-          users: [{ username: "admin", password: "pass" }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "pass" }],
+            },
+          ],
         });
         assert.strictEqual(result.success, true);
       });
 
-      it("should reject oauth without users, clients, or dynamic_registration", () => {
+      it("should reject oauth without identity_providers, clients, or dynamic_registration", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
         });
@@ -270,7 +357,12 @@ describe("Config Schemas", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
           issuer: "not-a-url",
-          users: [{ username: "admin", password: "pass" }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "pass" }],
+            },
+          ],
         });
         assert.strictEqual(result.success, false);
       });

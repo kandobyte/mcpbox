@@ -19,7 +19,9 @@ const TEST_CONFIG = {
   server: { port: PORTS.OAUTH },
   auth: {
     type: "oauth" as const,
-    users: [TEST_CREDENTIALS.USER],
+    identity_providers: [
+      { type: "local" as const, users: [TEST_CREDENTIALS.USER] },
+    ],
     dynamic_registration: true,
     clients: [TEST_CLIENTS.AUTH_CODE, TEST_CLIENTS.PUBLIC, TEST_CLIENTS.M2M],
   },

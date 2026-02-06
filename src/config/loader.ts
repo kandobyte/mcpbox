@@ -150,12 +150,16 @@ function checkConfig(config: Config): string[] {
     );
   }
 
-  if (config.auth?.type === "oauth" && config.auth.users) {
-    for (const user of config.auth.users) {
-      if (!/^\$2[aby]\$\d{2}\$/.test(user.password)) {
-        warnings.push(
-          `User "${user.username}": password is not hashed, consider using a bcrypt hash`,
-        );
+  if (config.auth?.type === "oauth" && config.auth.identity_providers) {
+    for (const provider of config.auth.identity_providers) {
+      if (provider.type === "local") {
+        for (const user of provider.users) {
+          if (!/^\$2[aby]\$\d{2}\$/.test(user.password)) {
+            warnings.push(
+              `User "${user.username}": password is not hashed, consider using a bcrypt hash`,
+            );
+          }
+        }
       }
     }
   }

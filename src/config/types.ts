@@ -2,6 +2,9 @@
 export type {
   AuthConfig,
   Config,
+  GitHubIdPConfig,
+  IdentityProviderConfig,
+  LocalIdPConfig,
   LogConfig,
   McpConfig,
   McpServerEntry,

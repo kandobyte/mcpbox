@@ -70,8 +70,13 @@ describe("Config Loader", () => {
       const path = writeConfig("env.json", {
         auth: {
           type: "oauth",
-          // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
-          users: [{ username: "${TEST_USER}", password: "${TEST_PASS}" }],
+          identity_providers: [
+            {
+              type: "local",
+              // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
+              users: [{ username: "${TEST_USER}", password: "${TEST_PASS}" }],
+            },
+          ],
         },
       });
 
@@ -80,8 +85,12 @@ describe("Config Loader", () => {
 
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
-        assert.strictEqual(config.auth.users?.[0].username, "testuser");
-        assert.strictEqual(config.auth.users?.[0].password, "testpass");
+        const provider = config.auth.identity_providers?.[0];
+        assert.strictEqual(provider?.type, "local");
+        if (provider?.type === "local") {
+          assert.strictEqual(provider.users[0].username, "testuser");
+          assert.strictEqual(provider.users[0].password, "testpass");
+        }
       }
 
       delete process.env.TEST_USER;
@@ -593,11 +602,16 @@ describe("Config Loader", () => {
       const path = writeConfig("warn-storage-oauth.json", {
         auth: {
           type: "oauth",
-          users: [
+          identity_providers: [
             {
-              username: "admin",
-              password:
-                "$2a$12$M0egBmBjQKt3iyHMPOV49.SpiTeJtsW6Ktjy3IeuXbxX5lCFHivW2",
+              type: "local",
+              users: [
+                {
+                  username: "admin",
+                  password:
+                    "$2a$12$M0egBmBjQKt3iyHMPOV49.SpiTeJtsW6Ktjy3IeuXbxX5lCFHivW2",
+                },
+              ],
             },
           ],
         },
@@ -625,7 +639,12 @@ describe("Config Loader", () => {
       const path = writeConfig("warn-password.json", {
         auth: {
           type: "oauth",
-          users: [{ username: "admin", password: "password123" }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "password123" }],
+            },
+          ],
         },
       });
 
@@ -644,7 +663,12 @@ describe("Config Loader", () => {
       const path = writeConfig("warn-password-hashed.json", {
         auth: {
           type: "oauth",
-          users: [{ username: "admin", password: hashed }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: hashed }],
+            },
+          ],
         },
       });
 
@@ -656,11 +680,16 @@ describe("Config Loader", () => {
   });
 
   describe("OAuth Configurations", () => {
-    it("should accept oauth with users only", async () => {
+    it("should accept oauth with identity_providers only", async () => {
       const path = writeConfig("oauth-users.json", {
         auth: {
           type: "oauth",
-          users: [{ username: "admin", password: "password123" }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "password123" }],
+            },
+          ],
         },
       });
 
@@ -669,10 +698,16 @@ describe("Config Loader", () => {
       assert.strictEqual(config.auth?.type, "oauth");
     });
 
-    it("should accept oauth with dynamic_registration only", async () => {
+    it("should accept oauth with dynamic_registration and identity_providers", async () => {
       const path = writeConfig("oauth-dynamic.json", {
         auth: {
           type: "oauth",
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "password123" }],
+            },
+          ],
           dynamic_registration: true,
         },
       });
@@ -752,7 +787,12 @@ describe("Config Loader", () => {
         auth: {
           type: "oauth",
           issuer: "https://example.com",
-          users: [{ username: "admin", password: "password123" }],
+          identity_providers: [
+            {
+              type: "local",
+              users: [{ username: "admin", password: "password123" }],
+            },
+          ],
         },
       });
 
