@@ -13,15 +13,15 @@ export function createTestClient(
   overrides: Partial<StoredClient> = {},
 ): StoredClient {
   return {
-    client_id: generateClientId(),
-    client_secret: "test-secret",
-    client_name: "Test Client",
-    redirect_uris: ["http://localhost:3000/callback"],
-    grant_types: ["authorization_code"],
-    response_types: ["code"],
-    token_endpoint_auth_method: "client_secret_post",
-    created_at: Date.now(),
-    is_dynamic: false,
+    clientId: generateClientId(),
+    clientSecret: "test-secret",
+    clientName: "Test Client",
+    redirectUris: ["http://localhost:3000/callback"],
+    grantTypes: ["authorization_code"],
+    responseTypes: ["code"],
+    tokenEndpointAuthMethod: "client_secret_post",
+    createdAt: Date.now(),
+    isDynamic: false,
     ...overrides,
   };
 }
@@ -31,8 +31,8 @@ export function createDynamicClient(
   overrides: Partial<StoredClient> = {},
 ): StoredClient {
   return createTestClient({
-    is_dynamic: true,
-    token_endpoint_auth_method: "none",
+    isDynamic: true,
+    tokenEndpointAuthMethod: "none",
     ...overrides,
   });
 }
@@ -42,9 +42,9 @@ export function createM2MClient(
   overrides: Partial<StoredClient> = {},
 ): StoredClient {
   return createTestClient({
-    grant_types: ["client_credentials"],
-    response_types: [],
-    redirect_uris: undefined,
+    grantTypes: ["client_credentials"],
+    responseTypes: [],
+    redirectUris: undefined,
     ...overrides,
   });
 }
@@ -55,10 +55,10 @@ export function createTestAccessToken(
 ): StoredAccessToken {
   return {
     token: generateToken(),
-    client_id: "test-client",
+    clientId: "test-client",
     scope: "read write",
-    expires_at: Date.now() + TOKEN_EXPIRY.ACCESS_TOKEN,
-    user_id: "testuser",
+    expiresAt: Date.now() + TOKEN_EXPIRY.ACCESS_TOKEN,
+    userId: "testuser",
     ...overrides,
   };
 }
@@ -68,7 +68,7 @@ export function createExpiredAccessToken(
   overrides: Partial<StoredAccessToken> = {},
 ): StoredAccessToken {
   return createTestAccessToken({
-    expires_at: Date.now() - 1000,
+    expiresAt: Date.now() - 1000,
     ...overrides,
   });
 }
@@ -79,10 +79,10 @@ export function createTestRefreshToken(
 ): StoredRefreshToken {
   return {
     token: generateToken(),
-    client_id: "test-client",
+    clientId: "test-client",
     scope: "read write",
-    expires_at: Date.now() + TOKEN_EXPIRY.REFRESH_TOKEN,
-    user_id: "testuser",
+    expiresAt: Date.now() + TOKEN_EXPIRY.REFRESH_TOKEN,
+    userId: "testuser",
     ...overrides,
   };
 }
@@ -92,7 +92,7 @@ export function createExpiredRefreshToken(
   overrides: Partial<StoredRefreshToken> = {},
 ): StoredRefreshToken {
   return createTestRefreshToken({
-    expires_at: Date.now() - 1000,
+    expiresAt: Date.now() - 1000,
     ...overrides,
   });
 }

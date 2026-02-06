@@ -32,22 +32,22 @@ export const TEST_CREDENTIALS = {
 export const TEST_CLIENTS = {
   // Authorization Code client (user-facing)
   AUTH_CODE: {
-    client_id: "test-client",
-    client_secret: "test-secret",
-    redirect_uris: ["http://localhost:3000/callback"],
-    grant_type: "authorization_code" as const,
+    clientId: "test-client",
+    clientSecret: "test-secret",
+    redirectUris: ["http://localhost:3000/callback"],
+    grantType: "authorization_code" as const,
   },
   // Public Authorization Code client (no secret, PKCE required)
   PUBLIC: {
-    client_id: "public-client",
-    redirect_uris: ["http://localhost:3000/callback"],
-    grant_type: "authorization_code" as const,
+    clientId: "public-client",
+    redirectUris: ["http://localhost:3000/callback"],
+    grantType: "authorization_code" as const,
   },
   // Machine-to-machine client (Client Credentials)
   M2M: {
-    client_id: "m2m-client",
-    client_secret: "m2m-secret",
-    grant_type: "client_credentials" as const,
+    clientId: "m2m-client",
+    clientSecret: "m2m-secret",
+    grantType: "client_credentials" as const,
   },
 } as const;
 

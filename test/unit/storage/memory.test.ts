@@ -17,7 +17,7 @@ describe("MemoryStore", () => {
 
   describe("Client Operations", () => {
     it("should save and retrieve a client", () => {
-      const client = createTestClient({ client_id: "test-1" });
+      const client = createTestClient({ clientId: "test-1" });
       store.saveClient(client);
 
       const retrieved = store.getClient("test-1");
@@ -30,7 +30,7 @@ describe("MemoryStore", () => {
     });
 
     it("should delete a client", () => {
-      const client = createTestClient({ client_id: "test-delete" });
+      const client = createTestClient({ clientId: "test-delete" });
       store.saveClient(client);
 
       store.deleteClient("test-delete");
@@ -41,28 +41,28 @@ describe("MemoryStore", () => {
 
     it("should overwrite existing client on save", () => {
       const client1 = createTestClient({
-        client_id: "overwrite",
-        client_name: "Original",
+        clientId: "overwrite",
+        clientName: "Original",
       });
       const client2 = createTestClient({
-        client_id: "overwrite",
-        client_name: "Updated",
+        clientId: "overwrite",
+        clientName: "Updated",
       });
 
       store.saveClient(client1);
       store.saveClient(client2);
 
       const retrieved = store.getClient("overwrite");
-      assert.strictEqual(retrieved?.client_name, "Updated");
+      assert.strictEqual(retrieved?.clientName, "Updated");
     });
 
     it("should get all dynamic clients", () => {
       const static1 = createTestClient({
-        client_id: "static-1",
-        is_dynamic: false,
+        clientId: "static-1",
+        isDynamic: false,
       });
-      const dynamic1 = createDynamicClient({ client_id: "dynamic-1" });
-      const dynamic2 = createDynamicClient({ client_id: "dynamic-2" });
+      const dynamic1 = createDynamicClient({ clientId: "dynamic-1" });
+      const dynamic2 = createDynamicClient({ clientId: "dynamic-2" });
 
       store.saveClient(static1);
       store.saveClient(dynamic1);
@@ -71,14 +71,14 @@ describe("MemoryStore", () => {
       const dynamicClients = store.getAllDynamicClients();
       assert.strictEqual(dynamicClients.length, 2);
 
-      const ids = dynamicClients.map((c) => c.client_id);
+      const ids = dynamicClients.map((c) => c.clientId);
       assert.ok(ids.includes("dynamic-1"));
       assert.ok(ids.includes("dynamic-2"));
       assert.ok(!ids.includes("static-1"));
     });
 
     it("should return empty array when no dynamic clients", () => {
-      const staticClient = createTestClient({ is_dynamic: false });
+      const staticClient = createTestClient({ isDynamic: false });
       store.saveClient(staticClient);
 
       const dynamicClients = store.getAllDynamicClients();
@@ -158,7 +158,7 @@ describe("MemoryStore", () => {
 
       const newToken = createTestRefreshToken({
         token: "new-token",
-        user_id: oldToken.user_id,
+        userId: oldToken.userId,
       });
       store.rotateRefreshToken("old-token", newToken);
 

@@ -1,31 +1,31 @@
 // Types for persisted OAuth state
 
 export interface StoredClient {
-  client_id: string;
-  client_secret?: string;
-  client_name?: string;
-  redirect_uris?: string[];
-  grant_types: string[];
-  response_types: string[];
-  token_endpoint_auth_method: string;
-  created_at: number;
-  is_dynamic: boolean;
+  clientId: string;
+  clientSecret?: string;
+  clientName?: string;
+  redirectUris?: string[];
+  grantTypes: string[];
+  responseTypes: string[];
+  tokenEndpointAuthMethod: string;
+  createdAt: number;
+  isDynamic: boolean;
 }
 
 export interface StoredAccessToken {
   token: string;
-  client_id: string;
+  clientId: string;
   scope?: string;
-  expires_at: number;
-  user_id: string;
+  expiresAt: number;
+  userId: string;
 }
 
 export interface StoredRefreshToken {
   token: string;
-  client_id: string;
+  clientId: string;
   scope?: string;
-  expires_at: number;
-  user_id: string;
+  expiresAt: number;
+  userId: string;
 }
 
 /**

@@ -113,35 +113,35 @@ describe("Config Schemas", () => {
     it("should accept github provider", () => {
       const result = IdentityProviderSchema.safeParse({
         type: "github",
-        client_id: "gh-id",
-        client_secret: "gh-secret",
+        clientId: "gh-id",
+        clientSecret: "gh-secret",
       });
       assert.strictEqual(result.success, true);
     });
 
-    it("should accept github provider with allowed_orgs and allowed_users", () => {
+    it("should accept github provider with allowedOrgs and allowedUsers", () => {
       const result = IdentityProviderSchema.safeParse({
         type: "github",
-        client_id: "gh-id",
-        client_secret: "gh-secret",
-        allowed_orgs: ["myorg"],
-        allowed_users: ["admin"],
+        clientId: "gh-id",
+        clientSecret: "gh-secret",
+        allowedOrgs: ["myorg"],
+        allowedUsers: ["admin"],
       });
       assert.strictEqual(result.success, true);
     });
 
-    it("should reject github provider without client_id", () => {
+    it("should reject github provider without clientId", () => {
       const result = IdentityProviderSchema.safeParse({
         type: "github",
-        client_secret: "gh-secret",
+        clientSecret: "gh-secret",
       });
       assert.strictEqual(result.success, false);
     });
 
-    it("should reject github provider without client_secret", () => {
+    it("should reject github provider without clientSecret", () => {
       const result = IdentityProviderSchema.safeParse({
         type: "github",
-        client_id: "gh-id",
+        clientId: "gh-id",
       });
       assert.strictEqual(result.success, false);
     });
@@ -156,84 +156,84 @@ describe("Config Schemas", () => {
   });
 
   describe("OAuthClientSchema", () => {
-    it("should accept authorization_code client with redirect_uris", () => {
+    it("should accept authorization_code client with redirectUris", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "web-app",
-        redirect_uris: ["https://app.example.com/callback"],
-        grant_type: "authorization_code",
+        clientId: "web-app",
+        redirectUris: ["https://app.example.com/callback"],
+        grantType: "authorization_code",
       });
       assert.strictEqual(result.success, true);
     });
 
     it("should accept client_credentials client with secret", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "backend-service",
-        client_secret: "secret123",
-        grant_type: "client_credentials",
+        clientId: "backend-service",
+        clientSecret: "secret123",
+        grantType: "client_credentials",
       });
       assert.strictEqual(result.success, true);
     });
 
-    it("should accept client with optional client_name", () => {
+    it("should accept client with optional clientName", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "my-app",
-        client_name: "My Application",
-        client_secret: "secret",
-        grant_type: "client_credentials",
+        clientId: "my-app",
+        clientName: "My Application",
+        clientSecret: "secret",
+        grantType: "client_credentials",
       });
       assert.strictEqual(result.success, true);
       if (result.success) {
-        assert.strictEqual(result.data.client_name, "My Application");
+        assert.strictEqual(result.data.clientName, "My Application");
       }
     });
 
-    it("should reject authorization_code without redirect_uris", () => {
+    it("should reject authorization_code without redirectUris", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "web-app",
-        grant_type: "authorization_code",
+        clientId: "web-app",
+        grantType: "authorization_code",
       });
       assert.strictEqual(result.success, false);
     });
 
-    it("should reject authorization_code with empty redirect_uris", () => {
+    it("should reject authorization_code with empty redirectUris", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "web-app",
-        redirect_uris: [],
-        grant_type: "authorization_code",
+        clientId: "web-app",
+        redirectUris: [],
+        grantType: "authorization_code",
       });
       assert.strictEqual(result.success, false);
     });
 
-    it("should reject client_credentials without client_secret", () => {
+    it("should reject client_credentials without clientSecret", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "backend-service",
-        grant_type: "client_credentials",
+        clientId: "backend-service",
+        grantType: "client_credentials",
       });
       assert.strictEqual(result.success, false);
     });
 
-    it("should reject invalid redirect_uri format", () => {
+    it("should reject invalid redirect URI format", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "web-app",
-        redirect_uris: ["not-a-url"],
-        grant_type: "authorization_code",
+        clientId: "web-app",
+        redirectUris: ["not-a-url"],
+        grantType: "authorization_code",
       });
       assert.strictEqual(result.success, false);
     });
 
-    it("should reject invalid grant_type", () => {
+    it("should reject invalid grantType", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "app",
-        grant_type: "implicit",
+        clientId: "app",
+        grantType: "implicit",
       });
       assert.strictEqual(result.success, false);
     });
 
-    it("should reject empty client_id", () => {
+    it("should reject empty clientId", () => {
       const result = OAuthClientSchema.safeParse({
-        client_id: "",
-        client_secret: "secret",
-        grant_type: "client_credentials",
+        clientId: "",
+        clientSecret: "secret",
+        grantType: "client_credentials",
       });
       assert.strictEqual(result.success, false);
     });
@@ -275,10 +275,10 @@ describe("Config Schemas", () => {
     });
 
     describe("oauth type", () => {
-      it("should accept oauth with identity_providers", () => {
+      it("should accept oauth with identityProviders", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "pass123" }],
@@ -293,33 +293,33 @@ describe("Config Schemas", () => {
           type: "oauth",
           clients: [
             {
-              client_id: "app",
-              client_secret: "secret",
-              grant_type: "client_credentials",
+              clientId: "app",
+              clientSecret: "secret",
+              grantType: "client_credentials",
             },
           ],
         });
         assert.strictEqual(result.success, true);
       });
 
-      it("should accept oauth with dynamic_registration and identity_providers", () => {
+      it("should accept oauth with dynamicRegistration and identityProviders", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "pass" }],
             },
           ],
-          dynamic_registration: true,
+          dynamicRegistration: true,
         });
         assert.strictEqual(result.success, true);
       });
 
-      it("should reject oauth with dynamic_registration but no identity_providers", () => {
+      it("should reject oauth with dynamicRegistration but no identityProviders", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
-          dynamic_registration: true,
+          dynamicRegistration: true,
         });
         assert.strictEqual(result.success, false);
       });
@@ -328,7 +328,7 @@ describe("Config Schemas", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
           issuer: "https://auth.example.com",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "pass" }],
@@ -338,17 +338,17 @@ describe("Config Schemas", () => {
         assert.strictEqual(result.success, true);
       });
 
-      it("should reject oauth without identity_providers, clients, or dynamic_registration", () => {
+      it("should reject oauth without identityProviders, clients, or dynamicRegistration", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
         });
         assert.strictEqual(result.success, false);
       });
 
-      it("should reject oauth with dynamic_registration=false and nothing else", () => {
+      it("should reject oauth with dynamicRegistration=false and nothing else", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
-          dynamic_registration: false,
+          dynamicRegistration: false,
         });
         assert.strictEqual(result.success, false);
       });
@@ -357,7 +357,7 @@ describe("Config Schemas", () => {
         const result = AuthConfigSchema.safeParse({
           type: "oauth",
           issuer: "not-a-url",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "pass" }],

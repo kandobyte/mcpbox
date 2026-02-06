@@ -52,6 +52,7 @@ function createLogger(config?: LogConfig): Logger {
         "*.pin",
         "*.PIN",
         "*.client_secret",
+        "*.clientSecret",
       ],
       censor: "***",
     };

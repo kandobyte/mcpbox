@@ -131,8 +131,8 @@ describe("Auth Middleware Integration", () => {
       // Get an access token via client credentials
       const { status, data } = await post(OAUTH_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       assert.strictEqual(status, 200);
       accessToken = data.access_token as string;

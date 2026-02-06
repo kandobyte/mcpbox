@@ -20,8 +20,8 @@ import type {
 export interface OAuthConfig {
   issuer: string;
   providers: IdentityProvider[];
-  clients?: OAuthClient[]; // Pre-registered clients with explicit grant_type
-  dynamicRegistration?: boolean; // Allow /register endpoint
+  clients?: OAuthClient[];
+  dynamicRegistration?: boolean;
 }
 
 interface AuthorizationCode {
@@ -61,7 +61,7 @@ export class OAuthServer {
     // Validate configuration
     if (config.dynamicRegistration && config.providers.length === 0) {
       throw new Error(
-        "Invalid OAuth configuration: dynamic_registration requires identity_providers to be configured. " +
+        "Invalid OAuth configuration: dynamic registration requires identity providers to be configured. " +
           "Dynamic clients use Authorization Code flow which requires user login.",
       );
     }
@@ -69,44 +69,44 @@ export class OAuthServer {
     // Load pre-registered clients into store
     if (config.clients) {
       for (const client of config.clients) {
-        const grantType = client.grant_type;
+        const grantType = client.grantType;
 
         // Validate requirements for each grant type
         if (grantType === "client_credentials") {
-          if (!client.client_secret) {
+          if (!client.clientSecret) {
             throw new Error(
-              `Invalid client "${client.client_id}": client_credentials grant requires client_secret`,
+              `Invalid client "${client.clientId}": client_credentials grant requires clientSecret`,
             );
           }
         }
 
         if (grantType === "authorization_code") {
-          if (!client.redirect_uris || client.redirect_uris.length === 0) {
+          if (!client.redirectUris || client.redirectUris.length === 0) {
             throw new Error(
-              `Invalid client "${client.client_id}": authorization_code grant requires redirect_uris`,
+              `Invalid client "${client.clientId}": authorization_code grant requires redirectUris`,
             );
           }
         }
 
         this.store.saveClient({
-          client_id: client.client_id,
-          client_name: client.client_name,
-          client_secret: client.client_secret
-            ? hashSecret(client.client_secret)
+          clientId: client.clientId,
+          clientName: client.clientName,
+          clientSecret: client.clientSecret
+            ? hashSecret(client.clientSecret)
             : undefined,
-          redirect_uris: client.redirect_uris,
-          grant_types: [grantType],
-          response_types: grantType === "authorization_code" ? ["code"] : [],
-          token_endpoint_auth_method: client.client_secret
+          redirectUris: client.redirectUris,
+          grantTypes: [grantType],
+          responseTypes: grantType === "authorization_code" ? ["code"] : [],
+          tokenEndpointAuthMethod: client.clientSecret
             ? "client_secret_post"
             : "none",
-          created_at: Date.now(),
-          is_dynamic: false,
+          createdAt: Date.now(),
+          isDynamic: false,
         });
         logger.info(
           {
-            client_id: client.client_id,
-            grant_type: grantType,
+            clientId: client.clientId,
+            grantType,
           },
           "Pre-registered client loaded",
         );
@@ -147,7 +147,7 @@ export class OAuthServer {
 
     // Advertise client_credentials if any pre-registered client supports it
     if (
-      this.config.clients?.some((c) => c.grant_type === "client_credentials")
+      this.config.clients?.some((c) => c.grantType === "client_credentials")
     ) {
       grantTypes.push("client_credentials");
     }
@@ -184,6 +184,7 @@ export class OAuthServer {
       return c.json({ error: "registration_not_supported" }, 404);
     }
 
+    // Wire format input (snake_case per RFC 7591)
     let request: {
       client_name?: string;
       redirect_uris?: string[];
@@ -236,36 +237,39 @@ export class OAuthServer {
 
     // Generate client credentials
     const clientId = randomUUID();
+
+    // Translate wire format (snake_case) to internal (camelCase)
     const client: StoredClient = {
-      client_id: clientId,
-      client_name: request.client_name,
-      redirect_uris: request.redirect_uris,
-      grant_types: request.grant_types ?? ["authorization_code"],
-      response_types: request.response_types ?? ["code"],
-      token_endpoint_auth_method: request.token_endpoint_auth_method ?? "none",
-      created_at: Date.now(),
-      is_dynamic: true,
+      clientId,
+      clientName: request.client_name,
+      redirectUris: request.redirect_uris,
+      grantTypes: request.grant_types ?? ["authorization_code"],
+      responseTypes: request.response_types ?? ["code"],
+      tokenEndpointAuthMethod: request.token_endpoint_auth_method ?? "none",
+      createdAt: Date.now(),
+      isDynamic: true,
     };
 
     this.store.saveClient(client);
 
     logger.info(
       {
-        client_id: clientId,
-        client_name: request.client_name,
-        redirect_uris: request.redirect_uris,
+        clientId,
+        clientName: request.client_name,
+        redirectUris: request.redirect_uris,
       },
       "Dynamic client registered",
     );
 
+    // Translate internal (camelCase) back to wire format (snake_case) for response
     return c.json(
       {
-        client_id: clientId,
-        client_name: client.client_name,
-        redirect_uris: client.redirect_uris,
-        grant_types: client.grant_types,
-        response_types: client.response_types,
-        token_endpoint_auth_method: client.token_endpoint_auth_method,
+        client_id: client.clientId,
+        client_name: client.clientName,
+        redirect_uris: client.redirectUris,
+        grant_types: client.grantTypes,
+        response_types: client.responseTypes,
+        token_endpoint_auth_method: client.tokenEndpointAuthMethod,
       },
       201,
     );
@@ -288,7 +292,7 @@ export class OAuthServer {
         {
           error: "invalid_request",
           error_description:
-            "Authorization Code flow not available. Use Client Credentials grant or configure identity_providers.",
+            "Authorization Code flow not available. Use Client Credentials grant or configure identity providers.",
         },
         400,
       );
@@ -400,7 +404,7 @@ export class OAuthServer {
 
       return this.redirectToProvider(c, redirectProvider, {
         clientId,
-        clientName: client.client_name,
+        clientName: client.clientName,
         redirectUri,
         state,
         codeChallenge,
@@ -412,7 +416,7 @@ export class OAuthServer {
     // GET request without idp — show login form (or auto-redirect for single provider)
     const pendingAuth: PendingAuth = {
       clientId,
-      clientName: client.client_name,
+      clientName: client.clientName,
       redirectUri,
       state,
       codeChallenge,
@@ -891,7 +895,7 @@ export class OAuthServer {
       );
     }
 
-    if (!client.grant_types.includes("client_credentials")) {
+    if (!client.grantTypes.includes("client_credentials")) {
       return c.json(
         {
           error: "unauthorized_client",
@@ -903,8 +907,8 @@ export class OAuthServer {
     }
 
     if (
-      !client.client_secret ||
-      !verifyClientSecret(clientSecret, client.client_secret)
+      !client.clientSecret ||
+      !verifyClientSecret(clientSecret, client.clientSecret)
     ) {
       return c.json(
         {
@@ -921,10 +925,10 @@ export class OAuthServer {
 
     this.store.saveAccessToken({
       token: hashSecret(accessToken),
-      client_id: clientId,
+      clientId,
       scope: "mcp:tools",
-      expires_at: Date.now() + expiresIn * 1000,
-      user_id: `client:${clientId}`, // Mark as client-authenticated
+      expiresAt: Date.now() + expiresIn * 1000,
+      userId: `client:${clientId}`, // Mark as client-authenticated
     });
 
     logger.info({ clientId }, "Client credentials token issued");
@@ -971,8 +975,8 @@ export class OAuthServer {
 
     // Validate client secret if required (timing-safe comparison)
     if (
-      client.client_secret &&
-      (!clientSecret || !verifyClientSecret(clientSecret, client.client_secret))
+      client.clientSecret &&
+      (!clientSecret || !verifyClientSecret(clientSecret, client.clientSecret))
     ) {
       return c.json(
         {
@@ -1071,20 +1075,20 @@ export class OAuthServer {
 
     this.store.saveAccessToken({
       token: hashSecret(accessToken),
-      client_id: clientId,
+      clientId,
       scope: authCode.scope,
-      expires_at: Date.now() + expiresIn * 1000,
-      user_id: authCode.userId,
+      expiresAt: Date.now() + expiresIn * 1000,
+      userId: authCode.userId,
     });
 
     // Issue refresh token (90 days)
     const refreshToken = randomBytes(32).toString("hex");
     this.store.saveRefreshToken({
       token: hashSecret(refreshToken),
-      client_id: clientId,
+      clientId,
       scope: authCode.scope,
-      expires_at: Date.now() + 90 * 24 * 60 * 60 * 1000,
-      user_id: authCode.userId,
+      expiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000,
+      userId: authCode.userId,
     });
 
     logger.info({ clientId, userId: authCode.userId }, "Access token issued");
@@ -1128,7 +1132,7 @@ export class OAuthServer {
       );
     }
 
-    if (stored.client_id !== clientId) {
+    if (stored.clientId !== clientId) {
       return c.json(
         {
           error: "invalid_grant",
@@ -1141,8 +1145,8 @@ export class OAuthServer {
     // Validate client secret if client has one
     const client = this.getClient(clientId);
     if (
-      client?.client_secret &&
-      (!clientSecret || !verifyClientSecret(clientSecret, client.client_secret))
+      client?.clientSecret &&
+      (!clientSecret || !verifyClientSecret(clientSecret, client.clientSecret))
     ) {
       return c.json(
         {
@@ -1157,10 +1161,10 @@ export class OAuthServer {
     const newRefreshToken = randomBytes(32).toString("hex");
     this.store.rotateRefreshToken(refreshTokenHash, {
       token: hashSecret(newRefreshToken),
-      client_id: clientId,
+      clientId,
       scope: stored.scope,
-      expires_at: Date.now() + 90 * 24 * 60 * 60 * 1000,
-      user_id: stored.user_id,
+      expiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000,
+      userId: stored.userId,
     });
 
     // Issue new access token
@@ -1169,14 +1173,14 @@ export class OAuthServer {
 
     this.store.saveAccessToken({
       token: hashSecret(accessToken),
-      client_id: clientId,
+      clientId,
       scope: stored.scope,
-      expires_at: Date.now() + expiresIn * 1000,
-      user_id: stored.user_id,
+      expiresAt: Date.now() + expiresIn * 1000,
+      userId: stored.userId,
     });
 
     logger.info(
-      { clientId, userId: stored.user_id },
+      { clientId, userId: stored.userId },
       "Tokens refreshed with rotation",
     );
 
@@ -1212,7 +1216,7 @@ export class OAuthServer {
       return { valid: false, error: "Invalid token" };
     }
 
-    return { valid: true, userId: accessToken.user_id };
+    return { valid: true, userId: accessToken.userId };
   }
 
   sendUnauthorized(c: Context, error?: string): Response {

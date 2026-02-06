@@ -54,7 +54,7 @@ describe("SqliteStore", () => {
     });
 
     it("should open existing database", async () => {
-      const client = createTestClient({ client_id: "persist-test" });
+      const client = createTestClient({ clientId: "persist-test" });
       store.saveClient(client);
       store.close();
 
@@ -62,14 +62,14 @@ describe("SqliteStore", () => {
       const store2 = await SqliteStore.create(dbPath);
       const retrieved = store2.getClient("persist-test");
 
-      assert.strictEqual(retrieved?.client_id, "persist-test");
+      assert.strictEqual(retrieved?.clientId, "persist-test");
       store2.close();
     });
   });
 
   describe("Client Operations", () => {
     it("should save and retrieve a client", () => {
-      const client = createTestClient({ client_id: "test-1" });
+      const client = createTestClient({ clientId: "test-1" });
       store.saveClient(client);
 
       const retrieved = store.getClient("test-1");
@@ -82,7 +82,7 @@ describe("SqliteStore", () => {
     });
 
     it("should delete a client", () => {
-      const client = createTestClient({ client_id: "test-delete" });
+      const client = createTestClient({ clientId: "test-delete" });
       store.saveClient(client);
 
       store.deleteClient("test-delete");
@@ -93,28 +93,28 @@ describe("SqliteStore", () => {
 
     it("should update existing client on save", () => {
       const client1 = createTestClient({
-        client_id: "update-test",
-        client_name: "Original",
+        clientId: "update-test",
+        clientName: "Original",
       });
       const client2 = createTestClient({
-        client_id: "update-test",
-        client_name: "Updated",
+        clientId: "update-test",
+        clientName: "Updated",
       });
 
       store.saveClient(client1);
       store.saveClient(client2);
 
       const retrieved = store.getClient("update-test");
-      assert.strictEqual(retrieved?.client_name, "Updated");
+      assert.strictEqual(retrieved?.clientName, "Updated");
     });
 
     it("should get all dynamic clients", () => {
       const static1 = createTestClient({
-        client_id: "static-1",
-        is_dynamic: false,
+        clientId: "static-1",
+        isDynamic: false,
       });
-      const dynamic1 = createDynamicClient({ client_id: "dynamic-1" });
-      const dynamic2 = createDynamicClient({ client_id: "dynamic-2" });
+      const dynamic1 = createDynamicClient({ clientId: "dynamic-1" });
+      const dynamic2 = createDynamicClient({ clientId: "dynamic-2" });
 
       store.saveClient(static1);
       store.saveClient(dynamic1);
@@ -123,43 +123,43 @@ describe("SqliteStore", () => {
       const dynamicClients = store.getAllDynamicClients();
       assert.strictEqual(dynamicClients.length, 2);
 
-      const ids = dynamicClients.map((c) => c.client_id);
+      const ids = dynamicClients.map((c) => c.clientId);
       assert.ok(ids.includes("dynamic-1"));
       assert.ok(ids.includes("dynamic-2"));
       assert.ok(!ids.includes("static-1"));
     });
 
-    it("should handle client without redirect_uris", () => {
-      const client = createM2MClient({ client_id: "m2m-test" });
+    it("should handle client without redirectUris", () => {
+      const client = createM2MClient({ clientId: "m2m-test" });
       store.saveClient(client);
 
       const retrieved = store.getClient("m2m-test");
-      assert.strictEqual(retrieved?.redirect_uris, undefined);
+      assert.strictEqual(retrieved?.redirectUris, undefined);
     });
 
-    it("should handle client with multiple redirect_uris", () => {
+    it("should handle client with multiple redirectUris", () => {
       const client = createTestClient({
-        client_id: "multi-uri",
-        redirect_uris: ["http://localhost:3000/a", "http://localhost:3000/b"],
+        clientId: "multi-uri",
+        redirectUris: ["http://localhost:3000/a", "http://localhost:3000/b"],
       });
       store.saveClient(client);
 
       const retrieved = store.getClient("multi-uri");
-      assert.deepStrictEqual(retrieved?.redirect_uris, [
+      assert.deepStrictEqual(retrieved?.redirectUris, [
         "http://localhost:3000/a",
         "http://localhost:3000/b",
       ]);
     });
 
-    it("should handle client with multiple grant_types", () => {
+    it("should handle client with multiple grantTypes", () => {
       const client = createTestClient({
-        client_id: "multi-grant",
-        grant_types: ["authorization_code", "refresh_token"],
+        clientId: "multi-grant",
+        grantTypes: ["authorization_code", "refresh_token"],
       });
       store.saveClient(client);
 
       const retrieved = store.getClient("multi-grant");
-      assert.deepStrictEqual(retrieved?.grant_types, [
+      assert.deepStrictEqual(retrieved?.grantTypes, [
         "authorization_code",
         "refresh_token",
       ]);
@@ -253,7 +253,7 @@ describe("SqliteStore", () => {
 
       const newToken = createTestRefreshToken({
         token: "new-token",
-        user_id: oldToken.user_id,
+        userId: oldToken.userId,
       });
       store.rotateRefreshToken("old-token", newToken);
 
@@ -309,7 +309,7 @@ describe("SqliteStore", () => {
 
   describe("Persistence", () => {
     it("should persist clients across restarts", async () => {
-      const client = createTestClient({ client_id: "persist-client" });
+      const client = createTestClient({ clientId: "persist-client" });
       store.saveClient(client);
       store.close();
 
@@ -342,7 +342,7 @@ describe("SqliteStore", () => {
 
   describe("Close", () => {
     it("should persist data on close", async () => {
-      const client = createTestClient({ client_id: "close-test" });
+      const client = createTestClient({ clientId: "close-test" });
       store.saveClient(client);
       store.close();
 

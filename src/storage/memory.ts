@@ -23,7 +23,7 @@ export class MemoryStore implements StateStore {
   }
 
   saveClient(client: StoredClient): void {
-    this.clients.set(client.client_id, client);
+    this.clients.set(client.clientId, client);
   }
 
   deleteClient(clientId: string): void {
@@ -31,14 +31,14 @@ export class MemoryStore implements StateStore {
   }
 
   getAllDynamicClients(): StoredClient[] {
-    return Array.from(this.clients.values()).filter((c) => c.is_dynamic);
+    return Array.from(this.clients.values()).filter((c) => c.isDynamic);
   }
 
   // Access token operations
   getAccessToken(token: string): StoredAccessToken | null {
     const stored = this.accessTokens.get(token);
     if (!stored) return null;
-    if (stored.expires_at < Date.now()) {
+    if (stored.expiresAt < Date.now()) {
       this.accessTokens.delete(token);
       return null;
     }
@@ -57,7 +57,7 @@ export class MemoryStore implements StateStore {
   getRefreshToken(token: string): StoredRefreshToken | null {
     const stored = this.refreshTokens.get(token);
     if (!stored) return null;
-    if (stored.expires_at < Date.now()) {
+    if (stored.expiresAt < Date.now()) {
       this.refreshTokens.delete(token);
       return null;
     }

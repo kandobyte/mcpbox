@@ -19,10 +19,10 @@ const TEST_CONFIG = {
   server: { port: PORTS.OAUTH },
   auth: {
     type: "oauth" as const,
-    identity_providers: [
+    identityProviders: [
       { type: "local" as const, users: [TEST_CREDENTIALS.USER] },
     ],
-    dynamic_registration: true,
+    dynamicRegistration: true,
     clients: [TEST_CLIENTS.AUTH_CODE, TEST_CLIENTS.PUBLIC, TEST_CLIENTS.M2M],
   },
   mcps: [],
@@ -315,8 +315,8 @@ describe("OAuth Server", () => {
     it("should include required access_token in successful response", async () => {
       const { data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       // RFC 6749 Section 5.1: access_token REQUIRED
       assert.ok(data.access_token, "Response must include access_token");
@@ -326,8 +326,8 @@ describe("OAuth Server", () => {
     it("should include required token_type in successful response", async () => {
       const { data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       // RFC 6749 Section 5.1: token_type REQUIRED
       assert.ok(data.token_type, "Response must include token_type");
@@ -337,8 +337,8 @@ describe("OAuth Server", () => {
     it("should include expires_in for token lifetime", async () => {
       const { data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       // RFC 6749 Section 5.1: expires_in RECOMMENDED
       assert.ok(data.expires_in, "Response should include expires_in");
@@ -349,8 +349,8 @@ describe("OAuth Server", () => {
     it("should return 200 status for successful token requests", async () => {
       const { status } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       // RFC 6749 Section 5.1: 200 OK for success
       assert.strictEqual(status, 200);
@@ -359,8 +359,8 @@ describe("OAuth Server", () => {
     it("should not include refresh_token for client_credentials grant", async () => {
       const { data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       // RFC 6749 Section 4.4.3: refresh token SHOULD NOT be included
       assert.strictEqual(data.refresh_token, undefined);
@@ -373,8 +373,8 @@ describe("OAuth Server", () => {
       const challenge = generateCodeChallenge(verifier);
 
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirect_uris[0],
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
         response_type: "code",
         code_challenge: challenge,
         code_challenge_method: "S256",
@@ -388,8 +388,8 @@ describe("OAuth Server", () => {
       const verifier = generateCodeVerifier();
 
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirect_uris[0],
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
         response_type: "code",
         code_challenge: verifier,
         code_challenge_method: "plain",
@@ -427,8 +427,8 @@ describe("OAuth Server", () => {
       // Use PUBLIC client (no client_secret, PKCE only)
       // Step 1: GET /authorize to get login form with session_id
       const authParams = new URLSearchParams({
-        client_id: TEST_CLIENTS.PUBLIC.client_id,
-        redirect_uri: TEST_CLIENTS.PUBLIC.redirect_uris[0],
+        client_id: TEST_CLIENTS.PUBLIC.clientId,
+        redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
         response_type: "code",
         code_challenge: challenge,
         code_challenge_method: "S256",
@@ -467,8 +467,8 @@ describe("OAuth Server", () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "authorization_code",
         code,
-        redirect_uri: TEST_CLIENTS.PUBLIC.redirect_uris[0],
-        client_id: TEST_CLIENTS.PUBLIC.client_id,
+        redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
+        client_id: TEST_CLIENTS.PUBLIC.clientId,
         code_verifier: verifier,
       });
 
@@ -484,8 +484,8 @@ describe("OAuth Server", () => {
       // Use PUBLIC client (no client_secret, PKCE only)
       // Step 1: GET /authorize
       const authParams = new URLSearchParams({
-        client_id: TEST_CLIENTS.PUBLIC.client_id,
-        redirect_uri: TEST_CLIENTS.PUBLIC.redirect_uris[0],
+        client_id: TEST_CLIENTS.PUBLIC.clientId,
+        redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
         response_type: "code",
         code_challenge: challenge,
         code_challenge_method: "S256",
@@ -518,8 +518,8 @@ describe("OAuth Server", () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "authorization_code",
         code,
-        redirect_uri: TEST_CLIENTS.PUBLIC.redirect_uris[0],
-        client_id: TEST_CLIENTS.PUBLIC.client_id,
+        redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
+        client_id: TEST_CLIENTS.PUBLIC.clientId,
         code_verifier: "wrong-verifier-that-does-not-match-challenge",
       });
 
@@ -532,7 +532,7 @@ describe("OAuth Server", () => {
     it("should reject invalid client secret", async () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
+        client_id: TEST_CLIENTS.M2M.clientId,
         client_secret: "wrong-secret",
       });
       assert.strictEqual(status, 401);
@@ -542,8 +542,8 @@ describe("OAuth Server", () => {
     it("should reject client not authorized for client_credentials", async () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
-        client_secret: TEST_CLIENTS.AUTH_CODE.client_secret,
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        client_secret: TEST_CLIENTS.AUTH_CODE.clientSecret,
       });
       assert.strictEqual(status, 400);
       assert.strictEqual(data.error, "unauthorized_client");
@@ -552,7 +552,7 @@ describe("OAuth Server", () => {
     it("should reject missing client_id", async () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
       assert.strictEqual(status, 400);
       assert.strictEqual(data.error, "invalid_request");
@@ -581,7 +581,7 @@ describe("OAuth Server", () => {
 
     it("should reject authorize with wrong redirect_uri", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
         redirect_uri: "http://evil.com/callback",
         response_type: "code",
       });
@@ -593,8 +593,8 @@ describe("OAuth Server", () => {
 
     it("should show login form for valid authorize request", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirect_uris[0],
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
         response_type: "code",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
@@ -607,8 +607,8 @@ describe("OAuth Server", () => {
 
     it("should include state in login form if provided", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirect_uris[0],
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
         response_type: "code",
         state: "test-state-123",
       });
@@ -623,8 +623,8 @@ describe("OAuth Server", () => {
     it("should accept valid access token", async () => {
       const { data: tokenData } = await post(BASE_URL, "/token", {
         grant_type: "client_credentials",
-        client_id: TEST_CLIENTS.M2M.client_id,
-        client_secret: TEST_CLIENTS.M2M.client_secret,
+        client_id: TEST_CLIENTS.M2M.clientId,
+        client_secret: TEST_CLIENTS.M2M.clientSecret,
       });
 
       const res = await fetch(`${BASE_URL}/mcp`, {
@@ -697,7 +697,7 @@ describe("OAuth Server", () => {
     it("should reject refresh without token", async () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "refresh_token",
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
       });
       assert.strictEqual(status, 400);
       assert.strictEqual(data.error, "invalid_request");
@@ -706,7 +706,7 @@ describe("OAuth Server", () => {
     it("should reject invalid refresh token", async () => {
       const { status, data } = await post(BASE_URL, "/token", {
         grant_type: "refresh_token",
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
         refresh_token: "invalid-token",
       });
       assert.strictEqual(status, 400);
@@ -737,7 +737,7 @@ describe("OAuth Server", () => {
   describe("Redirect URI Validation", () => {
     it("should reject mismatched redirect URI", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
         redirect_uri: "http://localhost:9999/different",
         response_type: "code",
       });
@@ -749,8 +749,8 @@ describe("OAuth Server", () => {
 
     it("should accept exact redirect URI match", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
-        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirect_uris[0],
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
+        redirect_uri: TEST_CLIENTS.AUTH_CODE.redirectUris[0],
         response_type: "code",
       });
       const res = await fetch(`${BASE_URL}/authorize?${params}`);
@@ -759,7 +759,7 @@ describe("OAuth Server", () => {
 
     it("should reject redirect URI with different path", async () => {
       const params = new URLSearchParams({
-        client_id: TEST_CLIENTS.AUTH_CODE.client_id,
+        client_id: TEST_CLIENTS.AUTH_CODE.clientId,
         redirect_uri: "http://localhost:3000/other-callback",
         response_type: "code",
       });

@@ -28,7 +28,7 @@
     // Identity providers for user authentication
     // Supported types: local (username/password), github (GitHub OAuth)
     // Multiple providers can be configured
-    "identity_providers": [
+    "identityProviders": [
       {
         "type": "local",
         "users": [
@@ -42,32 +42,32 @@
       // GitHub OAuth provider
       // {
       //   "type": "github",
-      //   "client_id": "${GITHUB_OAUTH_CLIENT_ID}",
-      //   "client_secret": "${GITHUB_OAUTH_CLIENT_SECRET}",
-      //   "allowed_orgs": ["my-org"],    // optional: restrict to org members
-      //   "allowed_users": ["octocat"]   // optional: restrict to specific users
+      //   "clientId": "${GITHUB_OAUTH_CLIENT_ID}",
+      //   "clientSecret": "${GITHUB_OAUTH_CLIENT_SECRET}",
+      //   "allowedOrgs": ["my-org"],    // optional: restrict to org members
+      //   "allowedUsers": ["octocat"]   // optional: restrict to specific users
       // }
     ],
-    "dynamic_registration": true // default: false - allow clients to self-register
+    "dynamicRegistration": true // default: false - allow clients to self-register
 
     // Pre-registered clients (optional)
     // Grant types:
-    //   - authorization_code: user-facing apps where users log in (requires redirect_uris)
-    //   - client_credentials: machine-to-machine access (requires client_secret, no user context)
+    //   - authorization_code: user-facing apps where users log in (requires redirectUris)
+    //   - client_credentials: machine-to-machine access (requires clientSecret, no user context)
     // "clients": [
     //   // User-facing app (Authorization Code flow)
     //   {
-    //     "client_id": "my-web-app",
-    //     "client_name": "My Web App",
-    //     "client_secret": "${SECRET}", // not needed if client supports PKCE
-    //     "redirect_uris": ["https://example.com/callback"],
-    //     "grant_type": "authorization_code"
+    //     "clientId": "my-web-app",
+    //     "clientName": "My Web App",
+    //     "clientSecret": "${SECRET}", // not needed if client supports PKCE
+    //     "redirectUris": ["https://example.com/callback"],
+    //     "grantType": "authorization_code"
     //   },
     //   // Machine-to-machine client (Client Credentials flow)
     //   {
-    //     "client_id": "my-backend-service",
-    //     "client_secret": "${M2M_SECRET}", // required for client_credentials
-    //     "grant_type": "client_credentials"
+    //     "clientId": "my-backend-service",
+    //     "clientSecret": "${M2M_SECRET}", // required for client_credentials
+    //     "grantType": "client_credentials"
     //   }
     // ]
   },

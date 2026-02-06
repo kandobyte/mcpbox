@@ -76,7 +76,7 @@ export class SqliteStore implements StateStore {
     const stmt = this.db.prepare(
       "INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)",
     );
-    stmt.run(client.client_id, JSON.stringify(client));
+    stmt.run(client.clientId, JSON.stringify(client));
   }
 
   deleteClient(clientId: string): void {
@@ -91,7 +91,7 @@ export class SqliteStore implements StateStore {
     const rows = stmt.all() as { value: string }[];
     return rows
       .map((row) => JSON.parse(row.value) as StoredClient)
-      .filter((client) => client.is_dynamic);
+      .filter((client) => client.isDynamic);
   }
 
   // Access token operations
@@ -107,7 +107,7 @@ export class SqliteStore implements StateStore {
     const stmt = this.db.prepare(
       "INSERT OR REPLACE INTO kv (key, value, expires_at) VALUES (?, ?, ?)",
     );
-    stmt.run(token.token, JSON.stringify(token), token.expires_at);
+    stmt.run(token.token, JSON.stringify(token), token.expiresAt);
   }
 
   deleteAccessToken(token: string): void {
@@ -128,7 +128,7 @@ export class SqliteStore implements StateStore {
     const stmt = this.db.prepare(
       "INSERT OR REPLACE INTO kv (key, value, expires_at) VALUES (?, ?, ?)",
     );
-    stmt.run(token.token, JSON.stringify(token), token.expires_at);
+    stmt.run(token.token, JSON.stringify(token), token.expiresAt);
   }
 
   deleteRefreshToken(token: string): void {
@@ -148,7 +148,7 @@ export class SqliteStore implements StateStore {
       insertStmt.run(
         newToken.token,
         JSON.stringify(newToken),
-        newToken.expires_at,
+        newToken.expiresAt,
       );
 
       this.db.exec("COMMIT");

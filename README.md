@@ -101,7 +101,7 @@ Then update your config with the generated public URL:
     "type": "oauth",
     "issuer": "https://<tunnel-id>.trycloudflare.com",
     "users": [{ "username": "admin", "password": "${MCPBOX_PASSWORD}" }],
-    "dynamic_registration": true
+    "dynamicRegistration": true
   },
   "storage": {
     "type": "sqlite",
@@ -123,7 +123,7 @@ docker run -v ./mcpbox.json:/config/config.json -v ./data:/data -p 8080:8080 ghc
 
 Settings → Connectors → Add Custom Connector → enter your URL → Connect
 
-Requires `dynamic_registration: true` in your config.
+Requires `dynamicRegistration: true` in your config.
 
 ### Claude Code
 
@@ -131,7 +131,7 @@ Requires `dynamic_registration: true` in your config.
 claude mcp add --transport http mcpbox https://your-mcpbox-url.com
 ```
 
-Requires `dynamic_registration: true` in your config.
+Requires `dynamicRegistration: true` in your config.
 
 ### MCP clients with JSON config
 

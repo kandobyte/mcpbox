@@ -57,8 +57,8 @@ export async function createServer(config: Config) {
 
     // Build identity providers from config
     const providers: IdentityProvider[] = [];
-    if (auth.identity_providers) {
-      for (const idpConfig of auth.identity_providers) {
+    if (auth.identityProviders) {
+      for (const idpConfig of auth.identityProviders) {
         switch (idpConfig.type) {
           case "local":
             providers.push(new LocalIdentityProvider(idpConfig.users));
@@ -66,10 +66,10 @@ export async function createServer(config: Config) {
           case "github":
             providers.push(
               new GitHubIdentityProvider({
-                clientId: idpConfig.client_id,
-                clientSecret: idpConfig.client_secret,
-                allowedOrgs: idpConfig.allowed_orgs,
-                allowedUsers: idpConfig.allowed_users,
+                clientId: idpConfig.clientId,
+                clientSecret: idpConfig.clientSecret,
+                allowedOrgs: idpConfig.allowedOrgs,
+                allowedUsers: idpConfig.allowedUsers,
               }),
             );
             break;
@@ -88,7 +88,7 @@ export async function createServer(config: Config) {
         issuer: auth.issuer ?? `http://localhost:${config.server.port}`,
         providers,
         clients: auth.clients,
-        dynamicRegistration: auth.dynamic_registration,
+        dynamicRegistration: auth.dynamicRegistration,
       },
       store,
     );
@@ -331,9 +331,9 @@ export async function createServer(config: Config) {
       if (auth?.type === "apikey") {
         logger.info("Authentication: API key");
       } else if (auth?.type === "oauth") {
-        const providerCount = auth.identity_providers?.length ?? 0;
+        const providerCount = auth.identityProviders?.length ?? 0;
         const clientCount = auth.clients?.length ?? 0;
-        const dynamicReg = auth.dynamic_registration ? "enabled" : "disabled";
+        const dynamicReg = auth.dynamicRegistration ? "enabled" : "disabled";
         logger.info(
           {
             identityProviders: providerCount,

@@ -54,10 +54,10 @@ export const LocalIdPSchema = z
 export const GitHubIdPSchema = z
   .object({
     type: z.literal("github"),
-    client_id: z.string().min(1, "GitHub client_id is required"),
-    client_secret: z.string().min(1, "GitHub client_secret is required"),
-    allowed_orgs: z.array(z.string()).optional(),
-    allowed_users: z.array(z.string()).optional(),
+    clientId: z.string().min(1, "GitHub clientId is required"),
+    clientSecret: z.string().min(1, "GitHub clientSecret is required"),
+    allowedOrgs: z.array(z.string()).optional(),
+    allowedUsers: z.array(z.string()).optional(),
   })
   .strict();
 
@@ -76,38 +76,38 @@ export const IdentityProviderSchema = z.discriminatedUnion("type", [
  */
 export const OAuthClientSchema = z
   .object({
-    client_id: z.string().min(1, "Client ID is required"),
-    client_name: z.string().optional(),
-    client_secret: z.string().optional(),
-    redirect_uris: z.array(z.string().url("Invalid redirect URI")).optional(),
-    grant_type: z.enum(["authorization_code", "client_credentials"]),
+    clientId: z.string().min(1, "Client ID is required"),
+    clientName: z.string().optional(),
+    clientSecret: z.string().optional(),
+    redirectUris: z.array(z.string().url("Invalid redirect URI")).optional(),
+    grantType: z.enum(["authorization_code", "client_credentials"]),
   })
   .strict()
   .refine(
     (client) => {
-      // client_credentials requires client_secret
-      if (client.grant_type === "client_credentials" && !client.client_secret) {
+      // client_credentials requires clientSecret
+      if (client.grantType === "client_credentials" && !client.clientSecret) {
         return false;
       }
       return true;
     },
     {
-      message: "client_secret is required for client_credentials grant type",
+      message: "clientSecret is required for client_credentials grant type",
     },
   )
   .refine(
     (client) => {
-      // authorization_code requires redirect_uris
+      // authorization_code requires redirectUris
       if (
-        client.grant_type === "authorization_code" &&
-        (!client.redirect_uris || client.redirect_uris.length === 0)
+        client.grantType === "authorization_code" &&
+        (!client.redirectUris || client.redirectUris.length === 0)
       ) {
         return false;
       }
       return true;
     },
     {
-      message: "redirect_uris is required for authorization_code grant type",
+      message: "redirectUris is required for authorization_code grant type",
     },
   );
 
@@ -129,33 +129,33 @@ export const AuthConfigSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("oauth"),
       issuer: z.string().url("Invalid issuer URL").optional(),
-      identity_providers: z.array(IdentityProviderSchema).optional(),
+      identityProviders: z.array(IdentityProviderSchema).optional(),
       clients: z.array(OAuthClientSchema).optional(),
-      dynamic_registration: z.boolean().optional(),
+      dynamicRegistration: z.boolean().optional(),
     })
     .strict()
     .refine(
       (oauth) => {
         const hasProviders =
-          oauth.identity_providers && oauth.identity_providers.length > 0;
+          oauth.identityProviders && oauth.identityProviders.length > 0;
         const hasClients = oauth.clients && oauth.clients.length > 0;
-        const hasDynamicReg = oauth.dynamic_registration === true;
+        const hasDynamicReg = oauth.dynamicRegistration === true;
         return hasProviders || hasClients || hasDynamicReg;
       },
       {
         message:
-          "OAuth requires at least one of: identity_providers, clients, or dynamic_registration enabled",
+          "OAuth requires at least one of: identity providers, clients, or dynamic registration enabled",
       },
     )
     .refine(
       (oauth) => {
-        // dynamic_registration requires at least one identity provider for user login
-        if (!oauth.dynamic_registration) return true;
-        return oauth.identity_providers && oauth.identity_providers.length > 0;
+        // dynamicRegistration requires at least one identity provider for user login
+        if (!oauth.dynamicRegistration) return true;
+        return oauth.identityProviders && oauth.identityProviders.length > 0;
       },
       {
         message:
-          "dynamic_registration requires identity_providers to be configured for user login",
+          "dynamic registration requires identity providers to be configured for user login",
       },
     ),
 ]);

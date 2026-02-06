@@ -70,7 +70,7 @@ describe("Config Loader", () => {
       const path = writeConfig("env.json", {
         auth: {
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
@@ -85,7 +85,7 @@ describe("Config Loader", () => {
 
       assert.strictEqual(config.auth?.type, "oauth");
       if (config.auth?.type === "oauth") {
-        const provider = config.auth.identity_providers?.[0];
+        const provider = config.auth.identityProviders?.[0];
         assert.strictEqual(provider?.type, "local");
         if (provider?.type === "local") {
           assert.strictEqual(provider.users[0].username, "testuser");
@@ -149,19 +149,19 @@ describe("Config Loader", () => {
   });
 
   describe("Client Configs", () => {
-    it("should parse client with redirect_uris", async () => {
+    it("should parse client with redirectUris", async () => {
       const path = writeConfig("client.json", {
         auth: {
           type: "oauth",
           clients: [
             {
-              client_id: "my-app",
-              client_secret: "app-secret",
-              redirect_uris: [
+              clientId: "my-app",
+              clientSecret: "app-secret",
+              redirectUris: [
                 "https://myapp.com/callback",
                 "https://myapp.com/oauth",
               ],
-              grant_type: "authorization_code",
+              grantType: "authorization_code",
             },
           ],
         },
@@ -174,24 +174,24 @@ describe("Config Loader", () => {
       if (config.auth?.type === "oauth") {
         const clients = config.auth.clients;
         assert.ok(clients);
-        assert.strictEqual(clients[0].client_id, "my-app");
-        assert.strictEqual(clients[0].client_secret, "app-secret");
-        assert.deepStrictEqual(clients[0].redirect_uris, [
+        assert.strictEqual(clients[0].clientId, "my-app");
+        assert.strictEqual(clients[0].clientSecret, "app-secret");
+        assert.deepStrictEqual(clients[0].redirectUris, [
           "https://myapp.com/callback",
           "https://myapp.com/oauth",
         ]);
       }
     });
 
-    it("should parse M2M client without redirect_uris", async () => {
+    it("should parse M2M client without redirectUris", async () => {
       const path = writeConfig("m2m-client.json", {
         auth: {
           type: "oauth",
           clients: [
             {
-              client_id: "m2m-app",
-              client_secret: "m2m-secret",
-              grant_type: "client_credentials",
+              clientId: "m2m-app",
+              clientSecret: "m2m-secret",
+              grantType: "client_credentials",
             },
           ],
         },
@@ -204,8 +204,8 @@ describe("Config Loader", () => {
       if (config.auth?.type === "oauth") {
         const clients = config.auth.clients;
         assert.ok(clients);
-        assert.strictEqual(clients[0].client_id, "m2m-app");
-        assert.strictEqual(clients[0].grant_type, "client_credentials");
+        assert.strictEqual(clients[0].clientId, "m2m-app");
+        assert.strictEqual(clients[0].grantType, "client_credentials");
       }
     });
   });
@@ -424,7 +424,7 @@ describe("Config Loader", () => {
       }
     });
 
-    it("should throw on oauth without users, clients, or dynamic_registration", async () => {
+    it("should throw on oauth without users, clients, or dynamicRegistration", async () => {
       const path = writeConfig("oauth-empty.json", {
         auth: {
           type: "oauth",
@@ -436,14 +436,14 @@ describe("Config Loader", () => {
       assert.throws(() => loadConfig(path), /OAuth requires/);
     });
 
-    it("should throw on client_credentials without client_secret", async () => {
+    it("should throw on client_credentials without clientSecret", async () => {
       const path = writeConfig("m2m-no-secret.json", {
         auth: {
           type: "oauth",
           clients: [
             {
-              client_id: "m2m-app",
-              grant_type: "client_credentials",
+              clientId: "m2m-app",
+              grantType: "client_credentials",
             },
           ],
         },
@@ -451,17 +451,17 @@ describe("Config Loader", () => {
 
       const { loadConfig } = await import("../../../src/config/loader.js");
 
-      assert.throws(() => loadConfig(path), /client_secret is required/);
+      assert.throws(() => loadConfig(path), /clientSecret is required/);
     });
 
-    it("should throw on authorization_code without redirect_uris", async () => {
+    it("should throw on authorization_code without redirectUris", async () => {
       const path = writeConfig("auth-code-no-redirect.json", {
         auth: {
           type: "oauth",
           clients: [
             {
-              client_id: "web-app",
-              grant_type: "authorization_code",
+              clientId: "web-app",
+              grantType: "authorization_code",
             },
           ],
         },
@@ -469,18 +469,18 @@ describe("Config Loader", () => {
 
       const { loadConfig } = await import("../../../src/config/loader.js");
 
-      assert.throws(() => loadConfig(path), /redirect_uris is required/);
+      assert.throws(() => loadConfig(path), /redirectUris is required/);
     });
 
-    it("should throw on invalid redirect_uri format", async () => {
+    it("should throw on invalid redirect URI format", async () => {
       const path = writeConfig("invalid-redirect.json", {
         auth: {
           type: "oauth",
           clients: [
             {
-              client_id: "web-app",
-              grant_type: "authorization_code",
-              redirect_uris: ["not-a-valid-url"],
+              clientId: "web-app",
+              grantType: "authorization_code",
+              redirectUris: ["not-a-valid-url"],
             },
           ],
         },
@@ -602,7 +602,7 @@ describe("Config Loader", () => {
       const path = writeConfig("warn-storage-oauth.json", {
         auth: {
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [
@@ -639,7 +639,7 @@ describe("Config Loader", () => {
       const path = writeConfig("warn-password.json", {
         auth: {
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "password123" }],
@@ -663,7 +663,7 @@ describe("Config Loader", () => {
       const path = writeConfig("warn-password-hashed.json", {
         auth: {
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: hashed }],
@@ -680,11 +680,11 @@ describe("Config Loader", () => {
   });
 
   describe("OAuth Configurations", () => {
-    it("should accept oauth with identity_providers only", async () => {
+    it("should accept oauth with identityProviders only", async () => {
       const path = writeConfig("oauth-users.json", {
         auth: {
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "password123" }],
@@ -698,17 +698,17 @@ describe("Config Loader", () => {
       assert.strictEqual(config.auth?.type, "oauth");
     });
 
-    it("should accept oauth with dynamic_registration and identity_providers", async () => {
+    it("should accept oauth with dynamicRegistration and identityProviders", async () => {
       const path = writeConfig("oauth-dynamic.json", {
         auth: {
           type: "oauth",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "password123" }],
             },
           ],
-          dynamic_registration: true,
+          dynamicRegistration: true,
         },
       });
 
@@ -723,9 +723,9 @@ describe("Config Loader", () => {
           type: "oauth",
           clients: [
             {
-              client_id: "web-app",
-              redirect_uris: ["https://app.example.com/callback"],
-              grant_type: "authorization_code",
+              clientId: "web-app",
+              redirectUris: ["https://app.example.com/callback"],
+              grantType: "authorization_code",
             },
           ],
         },
@@ -742,9 +742,9 @@ describe("Config Loader", () => {
           type: "oauth",
           clients: [
             {
-              client_id: "backend-service",
-              client_secret: "secret123",
-              grant_type: "client_credentials",
+              clientId: "backend-service",
+              clientSecret: "secret123",
+              grantType: "client_credentials",
             },
           ],
         },
@@ -761,14 +761,14 @@ describe("Config Loader", () => {
           type: "oauth",
           clients: [
             {
-              client_id: "web-app",
-              redirect_uris: ["https://app.example.com/callback"],
-              grant_type: "authorization_code",
+              clientId: "web-app",
+              redirectUris: ["https://app.example.com/callback"],
+              grantType: "authorization_code",
             },
             {
-              client_id: "backend-service",
-              client_secret: "secret123",
-              grant_type: "client_credentials",
+              clientId: "backend-service",
+              clientSecret: "secret123",
+              grantType: "client_credentials",
             },
           ],
         },
@@ -787,7 +787,7 @@ describe("Config Loader", () => {
         auth: {
           type: "oauth",
           issuer: "https://example.com",
-          identity_providers: [
+          identityProviders: [
             {
               type: "local",
               users: [{ username: "admin", password: "password123" }],

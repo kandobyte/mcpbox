@@ -49,7 +49,7 @@ export function isRedirectUriAllowed(
   redirectUri: string,
   client: StoredClient,
 ): boolean {
-  return client.redirect_uris?.includes(redirectUri) ?? false;
+  return client.redirectUris?.includes(redirectUri) ?? false;
 }
 
 /**

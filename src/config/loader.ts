@@ -150,8 +150,8 @@ function checkConfig(config: Config): string[] {
     );
   }
 
-  if (config.auth?.type === "oauth" && config.auth.identity_providers) {
-    for (const provider of config.auth.identity_providers) {
+  if (config.auth?.type === "oauth" && config.auth.identityProviders) {
+    for (const provider of config.auth.identityProviders) {
       if (provider.type === "local") {
         for (const user of provider.users) {
           if (!/^\$2[aby]\$\d{2}\$/.test(user.password)) {

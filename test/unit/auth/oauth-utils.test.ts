@@ -130,14 +130,14 @@ describe("oauth-utils", () => {
   });
 
   describe("isRedirectUriAllowed", () => {
-    const createClient = (redirect_uris?: string[]): StoredClient => ({
-      client_id: "test-client",
-      grant_types: ["authorization_code"],
-      response_types: ["code"],
-      token_endpoint_auth_method: "none",
-      created_at: Date.now(),
-      is_dynamic: false,
-      redirect_uris,
+    const createClient = (redirectUris?: string[]): StoredClient => ({
+      clientId: "test-client",
+      grantTypes: ["authorization_code"],
+      responseTypes: ["code"],
+      tokenEndpointAuthMethod: "none",
+      createdAt: Date.now(),
+      isDynamic: false,
+      redirectUris,
     });
 
     it("should return true for exact match", () => {
