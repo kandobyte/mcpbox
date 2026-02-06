@@ -1,86 +1,57 @@
-// Supports environment substitution: ${VAR}
+// All string values support ${VAR} environment substitution.
+// See docs/authentication.md for full auth documentation.
 {
-  // Server settings
   "server": {
     "port": 8080 // default: 8080
   },
 
-  // Logging
   "log": {
-    "level": "info", // default: info (options: debug, info, warn, error)
-    "format": "pretty", // default: pretty (options: pretty, json)
-    "redactSecrets": true, // default: true - hide passwords/tokens in logs
-    "mcpDebug": false // default: false - forward stderr from MCP servers to log
+    "level": "info", // default: info (debug, info, warn, error)
+    "format": "pretty", // default: pretty (pretty, json)
+    "redactSecrets": true, // default: true
+    "mcpDebug": false // default: false
   },
 
-  // Authentication: apikey or oauth
-  // Omit this section entirely for no authentication (anyone who can reach the server can use it)
+  // Authentication (omit for none)
   "auth": {
     "type": "oauth",
-
-    // API key settings (when type: apikey)
-    // Clients authenticate via Authorization: Bearer <key> header
-    // "apiKey": "${MCPBOX_API_KEY}"
-
-    // OAuth settings (when type: oauth)
-    "issuer": "https://mcp.example.com", // required for public access - your public URL
-
-    // Identity providers for user authentication
-    // Supported types: local (username/password), github (GitHub OAuth)
-    // Multiple providers can be configured
+    "issuer": "https://mcp.example.com",
     "identityProviders": [
       {
         "type": "local",
         "users": [
-          // passwords can be plain text or bcrypt hash
-          {
-            "username": "${MCPBOX_USER}",
-            "password": "${MCPBOX_PASSWORD}"
-          }
+          { "username": "${MCPBOX_USER}", "password": "${MCPBOX_PASSWORD}" }
         ]
       }
-      // GitHub OAuth provider
       // {
       //   "type": "github",
       //   "clientId": "${GITHUB_OAUTH_CLIENT_ID}",
       //   "clientSecret": "${GITHUB_OAUTH_CLIENT_SECRET}",
-      //   "allowedOrgs": ["my-org"],    // optional: restrict to org members
-      //   "allowedUsers": ["octocat"]   // optional: restrict to specific users
+      //   "allowedOrgs": ["my-org"],
+      //   "allowedUsers": ["octocat"]
       // }
     ],
-    "dynamicRegistration": true // default: false - allow clients to self-register
-
-    // Pre-registered clients (optional)
-    // Grant types:
-    //   - authorization_code: user-facing apps where users log in (requires redirectUris)
-    //   - client_credentials: machine-to-machine access (requires clientSecret, no user context)
+    "dynamicRegistration": true // default: false
     // "clients": [
-    //   // User-facing app (Authorization Code flow)
     //   {
     //     "clientId": "my-web-app",
-    //     "clientName": "My Web App",
-    //     "clientSecret": "${SECRET}", // not needed if client supports PKCE
     //     "redirectUris": ["https://example.com/callback"],
     //     "grantType": "authorization_code"
     //   },
-    //   // Machine-to-machine client (Client Credentials flow)
     //   {
     //     "clientId": "my-backend-service",
-    //     "clientSecret": "${M2M_SECRET}", // required for client_credentials
+    //     "clientSecret": "${M2M_SECRET}",
     //     "grantType": "client_credentials"
     //   }
     // ]
   },
 
-  // State persistence for OAuth tokens and registered clients
-  // Only used when auth.type is "oauth"
-  // default: { "type": "memory" } - lost on restart
+  // OAuth persistence (default: memory)
   "storage": {
     "type": "sqlite",
     "path": "./data/mcpbox.db" // default: ./data/mcpbox.db
   },
 
-  // default: {} - no servers
   "mcpServers": {
     "github": {
       "command": "npx",
@@ -88,15 +59,12 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
-      // Optional: limit which tools are exposed (omit for all tools).
-      // Useful for reducing scope, improving security, or hiding noisy tools.
       "tools": ["list_issues", "create_issue", "get_pull_request"]
     },
     "fetch": {
       "command": "uvx",
       "args": ["mcp-server-fetch"]
     },
-    // Docker-based server example
     "slack": {
       "command": "docker",
       "args": [

@@ -62,16 +62,9 @@ For remote access with authentication, see [Deployment](#deployment) and [Connec
 
 ## Configuration
 
-See [`mcpbox.example.jsonc`](mcpbox.example.jsonc) for all options.
+See [`mcpbox.example.jsonc`](mcpbox.example.jsonc) for all options. All string values support `${VAR_NAME}` environment variable substitution.
 
-**Authentication** — choose one:
-- **None** — default
-- **API Key** — `auth.type: "apikey"` with `auth.apiKey`
-- **OAuth** — `auth.type: "oauth"` with users, clients, and optional dynamic registration
-
-**Storage** (for OAuth):
-- **Memory** — default, tokens lost on restart
-- **SQLite** — `storage.type: "sqlite"` for persistence
+**[Authentication](docs/authentication.md)** — none (default), API key, or OAuth.
 
 ## Deployment
 
