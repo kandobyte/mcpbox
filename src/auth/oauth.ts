@@ -791,7 +791,7 @@ export class OAuthServer {
             <h1>MCPBox</h1>
             <p class="subtitle">
               <span class="client-name">${displayName}</span> wants to access
-              your tools
+              tools
             </p>
             ${error ? html`<p class="error">${error}</p>` : ""}
             ${
