@@ -626,6 +626,68 @@ describe("OAuth Server", () => {
       assert.ok(html.includes("password"));
     });
 
+    it("should reject reused authorization code", async () => {
+      const verifier = generateCodeVerifier();
+      const challenge = generateCodeChallenge(verifier);
+
+      // Step 1: GET /authorize to get login form
+      const authParams = new URLSearchParams({
+        client_id: TEST_CLIENTS.PUBLIC.clientId,
+        redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
+        response_type: "code",
+        code_challenge: challenge,
+        code_challenge_method: "S256",
+      });
+
+      const authRes = await fetch(`${BASE_URL}/authorize?${authParams}`);
+      const html = await authRes.text();
+      const sessionIdMatch = html.match(/name="session_id"\s+value="([^"]+)"/);
+      assert.ok(sessionIdMatch);
+      const sessionId = sessionIdMatch[1];
+
+      // Step 2: POST /authorize to get auth code
+      const loginRes = await fetch(`${BASE_URL}/authorize?${authParams}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          username: TEST_CREDENTIALS.USER.username,
+          password: TEST_CREDENTIALS.USER.password,
+          session_id: sessionId,
+        }).toString(),
+        redirect: "manual",
+      });
+
+      const location = loginRes.headers.get("location");
+      assert.ok(location);
+      const code = new URL(location).searchParams.get("code");
+      assert.ok(code);
+
+      // Step 3: First exchange — should succeed
+      const { status: firstStatus } = await post(BASE_URL, "/token", {
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
+        client_id: TEST_CLIENTS.PUBLIC.clientId,
+        code_verifier: verifier,
+      });
+      assert.strictEqual(firstStatus, 200);
+
+      // Step 4: Second exchange with same code — should fail
+      const { status: secondStatus, data: secondData } = await post(
+        BASE_URL,
+        "/token",
+        {
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: TEST_CLIENTS.PUBLIC.redirectUris[0],
+          client_id: TEST_CLIENTS.PUBLIC.clientId,
+          code_verifier: verifier,
+        },
+      );
+      assert.strictEqual(secondStatus, 400);
+      assert.strictEqual(secondData.error, "invalid_grant");
+    });
+
     it("should include state in login form if provided", async () => {
       const params = new URLSearchParams({
         ...validAuthorizeParams,
