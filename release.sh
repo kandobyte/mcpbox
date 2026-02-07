@@ -29,6 +29,9 @@ npm run test:conformance
 # Build
 npm run build
 
+# Docker build check
+docker build -t mcpbox:$VERSION .
+
 # Commit and tag
 git add package.json package-lock.json
 git commit -m "v$VERSION"
