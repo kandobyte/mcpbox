@@ -73,10 +73,10 @@ See [`mcpbox.example.jsonc`](mcpbox.example.jsonc) for all options. All string v
 
 To expose MCPBox remotely, put it behind a TLS-terminating reverse proxy.
 
-Before deploying:
-- [ ] Use `storage.type: "sqlite"` for persistence across restarts
-- [ ] Set `auth.issuer` to your public URL when using OAuth
-- [ ] Use bcrypt hashes for passwords
+Before deploying with OAuth:
+- [ ] Use sqlite storage for persistence across restarts
+- [ ] Set issuer to your public URL
+- [ ] Use bcrypt hashes for local passwords
 
 > [!NOTE]
 > MCPBox is single-instance only — don't run multiple instances behind a load balancer.
