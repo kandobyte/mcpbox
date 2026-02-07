@@ -9,7 +9,7 @@
 
 - Aggregate multiple local stdio servers behind a single HTTP endpoint
 - Exposes Tools, Resources & Prompts
-- Namespaces with `servername__` prefix to avoid collisions (e.g., `github__create_issue`)
+- Namespaces with `servername__` prefix to avoid collisions
 - OAuth or API key authentication
 
 <picture>
@@ -129,12 +129,28 @@ claude mcp add --transport http mcpbox https://your-mcpbox-url.com
 
 Requires `dynamicRegistration: true` in your config.
 
-### MCP clients with JSON config
+### Other MCP clients
+
+**With dynamic registration (OAuth)** — just provide the URL:
 
 ```json
 {
   "mcpServers": {
     "mcpbox": {
+      "type": "http",
+      "url": "https://your-mcpbox-url.com"
+    }
+  }
+}
+```
+
+**With API key:**
+
+```json
+{
+  "mcpServers": {
+    "mcpbox": {
+      "type": "http",
       "url": "https://your-mcpbox-url.com",
       "headers": {
         "Authorization": "Bearer YOUR_API_KEY"
