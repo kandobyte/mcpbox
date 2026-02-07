@@ -66,8 +66,6 @@ Define usernames and passwords directly in config.
 | `users[].username` | `string` | Username |
 | `users[].password` | `string` | Plain text or bcrypt hash (`$2a$`, `$2b$`, `$2y$` prefix) |
 
-Use bcrypt hashes in production.
-
 #### GitHub
 
 Authenticate users through GitHub OAuth. Optionally restrict access to specific orgs or usernames.
