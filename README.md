@@ -7,7 +7,7 @@
 
 **MCPBox** is a lightweight gateway that exposes local stdio-based MCP (Model Context Protocol) servers via Streamable HTTP, enabling Claude and other AI agents to connect from anywhere.
 
-- Aggregate multiple local stdio servers behind a single HTTP endpoint
+- Runs multiple MCP stdio servers behind a single HTTP endpoint
 - Exposes Tools, Resources & Prompts
 - Namespaces with `servername__` prefix to avoid collisions
 - OAuth or API key authentication
@@ -96,7 +96,9 @@ Then update your config with the generated public URL:
   "auth": {
     "type": "oauth",
     "issuer": "https://<tunnel-id>.trycloudflare.com",
-    "users": [{ "username": "admin", "password": "${MCPBOX_PASSWORD}" }],
+    "identityProviders": [
+      { "type": "local", "users": [{ "username": "admin", "password": "${MCPBOX_PASSWORD}" }] }
+    ],
     "dynamicRegistration": true
   },
   "storage": {

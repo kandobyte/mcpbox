@@ -13,6 +13,8 @@ dist/
 # Local config files (may contain credentials)
 mcpbox.local.json
 mcpbox.github.json
+mcpbox.github-local.json
+
 
 # IDE
 .idea/
