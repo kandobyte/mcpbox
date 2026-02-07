@@ -12,7 +12,10 @@
 - Namespaces with `servername__` prefix to avoid collisions (e.g., `github__create_issue`)
 - OAuth or API key authentication
 
-![mcpbox diagram](assets/diagram.excalidraw.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/diagram-dark.excalidraw.png">
+  <img src="assets/diagram.excalidraw.png" alt="mcpbox diagram">
+</picture>
 
 ## Quick Start
 

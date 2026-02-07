@@ -9,7 +9,7 @@
     "level": "info", // default: info (debug, info, warn, error)
     "format": "pretty", // default: pretty (pretty, json)
     "redactSecrets": true, // default: true
-    "mcpDebug": false // default: false
+    "mcpDebug": false // default: false — pipes MCP stderr to logs (may expose sensitive env vars)
   },
 
   // Authentication (omit for none)
