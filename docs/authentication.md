@@ -23,7 +23,7 @@ Clients authenticate with `Authorization: Bearer <key>`. The key must be 16-128 
 
 ## OAuth
 
-MCPBox is its own OAuth authorization server, supporting Authorization Code (user login) and Client Credentials (machine-to-machine) flows. MCP clients discover it via standard metadata endpoints.
+MCPBox is its own OAuth authorization server, supporting Authorization Code (user login) and Client Credentials (machine-to-machine) flows. MCP clients discover it via standard metadata endpoints. Use local users defined in config, or GitHub as an external identity provider.
 
 ```jsonc
 {
