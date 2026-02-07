@@ -127,7 +127,7 @@ export class OAuthServer {
     return {
       resource: this.config.issuer,
       authorization_servers: [this.config.issuer],
-      scopes_supported: ["mcp:tools"],
+      scopes_supported: ["mcp"],
       bearer_methods_supported: ["header"],
       // Non-standard: logo for client display
       logo_uri: `${this.config.issuer}/logo.png`,
@@ -157,7 +157,7 @@ export class OAuthServer {
       token_endpoint: `${this.config.issuer}/token`,
       grant_types_supported: grantTypes,
       token_endpoint_auth_methods_supported: ["none", "client_secret_post"],
-      scopes_supported: ["mcp:tools"],
+      scopes_supported: ["mcp"],
     };
 
     // Only advertise authorization endpoint if identity providers are configured
@@ -941,7 +941,7 @@ export class OAuthServer {
     this.store.saveAccessToken({
       token: hashSecret(accessToken),
       clientId,
-      scope: "mcp:tools",
+      scope: "mcp",
       expiresAt: Date.now() + expiresIn * 1000,
       userId: `client:${clientId}`, // Mark as client-authenticated
     });
@@ -953,7 +953,7 @@ export class OAuthServer {
       access_token: accessToken, // Return unhashed token to client
       token_type: "Bearer",
       expires_in: expiresIn,
-      scope: "mcp:tools",
+      scope: "mcp",
     });
   }
 
