@@ -10,7 +10,7 @@
 - Runs multiple MCP stdio servers behind a single HTTP endpoint
 - Exposes Tools, Resources & Prompts
 - Namespaces with `servername__` prefix to avoid collisions
-- Per-server tool filtering to reduce context window usage
+- Per-server tool filtering to limit AI access and reduce context usage
 - OAuth or API key authentication
 
 <picture>
