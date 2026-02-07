@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 import {
   type LoadConfigResult,
   loadConfig,
@@ -42,9 +43,6 @@ function parseArgs(args: string[]): {
       result.version = true;
     } else if (arg === "-c" || arg === "--config") {
       result.config = args[++i];
-    } else if (!arg.startsWith("-")) {
-      // Positional arg = config path (backwards compat)
-      result.config = arg;
     }
   }
 
@@ -65,13 +63,17 @@ if (args.version) {
 
 const configPath = resolveConfigPath(args.config);
 
+if (args.config && !existsSync(configPath)) {
+  console.error(`Config file not found: ${configPath}`);
+  process.exit(1);
+}
+
 let config: LoadConfigResult["config"];
 let warnings: LoadConfigResult["warnings"];
 try {
   ({ config, warnings } = loadConfig(configPath));
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  // Log to stderr directly since logger config isn't loaded yet
   console.error(`Failed to load config from ${configPath}:\n${message}`);
   process.exit(1);
 }

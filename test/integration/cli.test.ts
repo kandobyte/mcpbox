@@ -218,19 +218,10 @@ describe("CLI", () => {
       }
     });
 
-    it("should start with defaults for non-existent config file", async () => {
-      // Use a non-existent config but override port via a real config
-      // Actually, with defaults it will use port 8080, so let's just verify it starts
-      const server = await startServer(
-        ["-c", "/nonexistent/config.json"],
-        8080,
-      );
-      try {
-        const res = await fetch("http://localhost:8080/health");
-        assert.strictEqual(res.status, 200);
-      } finally {
-        await server.kill();
-      }
+    it("should exit with error for non-existent config file", async () => {
+      const { code, stderr } = await runCli(["-c", "/nonexistent/config.json"]);
+      assert.strictEqual(code, 1);
+      assert.ok(stderr.includes("Config file not found"));
     });
 
     it("should exit with code 1 for invalid JSON config", async () => {
@@ -239,24 +230,6 @@ describe("CLI", () => {
 
       const { code } = await runCli(["-c", configPath]);
       assert.strictEqual(code, 1);
-    });
-  });
-
-  describe("Positional Config Argument", () => {
-    it("should accept config path as positional argument", async () => {
-      const port = 19003;
-      const configPath = writeConfig("positional.json", {
-        server: { port },
-      });
-
-      const server = await startServer([configPath], port);
-      try {
-        // Verify server responds on the configured port
-        const res = await fetch(`http://localhost:${port}/health`);
-        assert.strictEqual(res.status, 200);
-      } finally {
-        await server.kill();
-      }
     });
   });
 });
