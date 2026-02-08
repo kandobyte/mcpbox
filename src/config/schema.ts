@@ -157,6 +157,16 @@ export const AuthConfigSchema = z.discriminatedUnion("type", [
         message:
           "dynamic registration requires identity providers to be configured for user login",
       },
+    )
+    .refine(
+      (oauth) => {
+        if (!oauth.clients) return true;
+        const ids = oauth.clients.map((c) => c.clientId);
+        return new Set(ids).size === ids.length;
+      },
+      {
+        message: "Duplicate client IDs are not allowed",
+      },
     ),
 ]);
 

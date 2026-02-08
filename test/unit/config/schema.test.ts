@@ -368,6 +368,25 @@ describe("Config Schemas", () => {
       });
     });
 
+    it("should reject duplicate client IDs", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        clients: [
+          {
+            clientId: "app",
+            clientSecret: "secret",
+            grantType: "client_credentials",
+          },
+          {
+            clientId: "app",
+            clientSecret: "other-secret",
+            grantType: "client_credentials",
+          },
+        ],
+      });
+      assert.strictEqual(result.success, false);
+    });
+
     it("should reject unknown auth type", () => {
       const result = AuthConfigSchema.safeParse({
         type: "basic",

@@ -7,7 +7,7 @@
 
 **MCPBox** is a lightweight gateway that exposes local stdio-based [MCP](https://modelcontextprotocol.io) servers via Streamable HTTP, enabling Claude and other AI agents to connect from anywhere.
 
-- Runs multiple MCP stdio servers behind a single HTTP endpoint
+- Runs multiple servers behind a single HTTP endpoint
 - Exposes Tools, Resources & Prompts
 - Namespaces with `servername__` prefix to avoid collisions
 - Per-server tool filtering to limit AI access and reduce context usage
