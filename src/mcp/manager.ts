@@ -5,10 +5,14 @@ import {
 } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { validateToolName } from "@modelcontextprotocol/sdk/shared/toolNameValidation.js";
 import type {
+  CallToolRequestParams,
   CallToolResult,
+  CompleteRequestParams,
   CompleteResult,
+  GetPromptRequestParams,
   GetPromptResult,
   Prompt,
+  ReadResourceRequestParams,
   ReadResourceResult,
   Resource,
   Tool,
@@ -311,33 +315,30 @@ export class McpManager {
     return { servers };
   }
 
-  async callTool(
-    toolName: string,
-    args: Record<string, unknown>,
-  ): Promise<CallToolResult> {
-    const mcpName = this.toolToMcp.get(toolName);
+  async callTool(params: CallToolRequestParams): Promise<CallToolResult> {
+    const mcpName = this.toolToMcp.get(params.name);
     if (!mcpName) {
-      logger.warn(`Unknown tool called: ${toolName}`);
-      throw new Error(`Unknown tool: ${toolName}`);
+      logger.warn(`Unknown tool called: ${params.name}`);
+      throw new Error(`Unknown tool: ${params.name}`);
     }
 
     const mcp = this.mcps.get(mcpName);
     if (!mcp) {
-      logger.error({ mcpName }, `MCP not found for tool: ${toolName}`);
+      logger.error({ mcpName }, `MCP not found for tool: ${params.name}`);
       throw new Error(`MCP not found: ${mcpName}`);
     }
 
     // Strip namespace prefix to get original tool name
     const originalName = this.useNamespacing
-      ? stripNamespace(mcpName, toolName)
-      : toolName;
+      ? stripNamespace(mcpName, params.name)
+      : params.name;
 
-    logger.info({ args }, `Tool call: ${toolName}`);
+    logger.info({ arguments: params.arguments }, `Tool call: ${params.name}`);
 
     const startTime = Date.now();
     const result = await mcp.client.callTool({
       name: originalName,
-      arguments: args,
+      arguments: params.arguments,
     });
     const duration = Date.now() - startTime;
 
@@ -346,31 +347,33 @@ export class McpManager {
         duration: `${duration}ms`,
         isError: result.isError ?? false,
       },
-      `Tool result: ${toolName}`,
+      `Tool result: ${params.name}`,
     );
 
     return result as CallToolResult;
   }
 
-  async readResource(resourceUri: string): Promise<ReadResourceResult> {
-    const mcpName = this.resourceToMcp.get(resourceUri);
+  async readResource(
+    params: ReadResourceRequestParams,
+  ): Promise<ReadResourceResult> {
+    const mcpName = this.resourceToMcp.get(params.uri);
     if (!mcpName) {
-      logger.warn(`Unknown resource: ${resourceUri}`);
-      throw new Error(`Unknown resource: ${resourceUri}`);
+      logger.warn(`Unknown resource: ${params.uri}`);
+      throw new Error(`Unknown resource: ${params.uri}`);
     }
 
     const mcp = this.mcps.get(mcpName);
     if (!mcp) {
-      logger.error({ mcpName }, `MCP not found for resource: ${resourceUri}`);
+      logger.error({ mcpName }, `MCP not found for resource: ${params.uri}`);
       throw new Error(`MCP not found: ${mcpName}`);
     }
 
     // Strip namespace prefix to get original URI
     const originalUri = this.useNamespacing
-      ? stripNamespace(mcpName, resourceUri)
-      : resourceUri;
+      ? stripNamespace(mcpName, params.uri)
+      : params.uri;
 
-    logger.info(`Resource read: ${resourceUri}`);
+    logger.info(`Resource read: ${params.uri}`);
 
     const startTime = Date.now();
     const result = await mcp.client.readResource({ uri: originalUri });
@@ -378,52 +381,46 @@ export class McpManager {
 
     logger.info(
       { duration: `${duration}ms` },
-      `Resource result: ${resourceUri}`,
+      `Resource result: ${params.uri}`,
     );
 
     return result as ReadResourceResult;
   }
 
-  async getPrompt(
-    promptName: string,
-    args?: Record<string, string>,
-  ): Promise<GetPromptResult> {
-    const mcpName = this.promptToMcp.get(promptName);
+  async getPrompt(params: GetPromptRequestParams): Promise<GetPromptResult> {
+    const mcpName = this.promptToMcp.get(params.name);
     if (!mcpName) {
-      logger.warn(`Unknown prompt: ${promptName}`);
-      throw new Error(`Unknown prompt: ${promptName}`);
+      logger.warn(`Unknown prompt: ${params.name}`);
+      throw new Error(`Unknown prompt: ${params.name}`);
     }
 
     const mcp = this.mcps.get(mcpName);
     if (!mcp) {
-      logger.error({ mcpName }, `MCP not found for prompt: ${promptName}`);
+      logger.error({ mcpName }, `MCP not found for prompt: ${params.name}`);
       throw new Error(`MCP not found: ${mcpName}`);
     }
 
     // Strip namespace prefix to get original name
     const originalName = this.useNamespacing
-      ? stripNamespace(mcpName, promptName)
-      : promptName;
+      ? stripNamespace(mcpName, params.name)
+      : params.name;
 
-    logger.info({ args }, `Prompt get: ${promptName}`);
+    logger.info({ arguments: params.arguments }, `Prompt get: ${params.name}`);
 
     const startTime = Date.now();
     const result = await mcp.client.getPrompt({
       name: originalName,
-      arguments: args,
+      arguments: params.arguments,
     });
     const duration = Date.now() - startTime;
 
-    logger.info({ duration: `${duration}ms` }, `Prompt result: ${promptName}`);
+    logger.info({ duration: `${duration}ms` }, `Prompt result: ${params.name}`);
 
     return result as GetPromptResult;
   }
 
-  async complete(
-    ref: { type: string; name?: string; uri?: string },
-    argument: { name: string; value: string },
-  ): Promise<CompleteResult> {
-    const { mcpName, originalRef } = this.resolveCompletionRef(ref);
+  async complete(params: CompleteRequestParams): Promise<CompleteResult> {
+    const { mcpName, originalRef } = this.resolveCompletionRef(params.ref);
 
     const mcp = this.mcps.get(mcpName);
     if (!mcp) {
@@ -431,10 +428,16 @@ export class McpManager {
       throw new Error(`MCP not found: ${mcpName}`);
     }
 
-    logger.info({ ref, argument }, "Completion request");
+    logger.info(
+      { ref: params.ref, argument: params.argument },
+      "Completion request",
+    );
 
     const startTime = Date.now();
-    const result = await mcp.client.complete({ ref: originalRef, argument });
+    const result = await mcp.client.complete({
+      ref: originalRef,
+      argument: params.argument,
+    });
     const duration = Date.now() - startTime;
 
     logger.info({ duration: `${duration}ms` }, "Completion result");
@@ -442,11 +445,9 @@ export class McpManager {
     return result as CompleteResult;
   }
 
-  private resolveCompletionRef(ref: {
-    type: string;
-    name?: string;
-    uri?: string;
-  }):
+  private resolveCompletionRef(
+    ref: CompleteRequestParams["ref"],
+  ):
     | { mcpName: string; originalRef: { type: "ref/prompt"; name: string } }
     | { mcpName: string; originalRef: { type: "ref/resource"; uri: string } } {
     if (ref.type === "ref/prompt" && ref.name) {

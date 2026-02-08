@@ -1,7 +1,6 @@
 import path from "node:path";
 import { serve } from "@hono/node-server";
-import type { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
-import { type Context, Hono } from "hono";
+import { Hono } from "hono";
 import { LOGO_PNG_BASE64 } from "./assets.js";
 import { checkApiKey } from "./auth/apikey.js";
 import { OAuthServer } from "./auth/oauth.js";
@@ -10,19 +9,7 @@ import type { IdentityProvider } from "./auth/providers/identity-provider.js";
 import { LocalIdentityProvider } from "./auth/providers/local.js";
 import type { Config } from "./config/types.js";
 import { logger } from "./logger.js";
-import {
-  handleCompletionComplete,
-  handleInitialize,
-  handleInitialized,
-  handleMethodNotFound,
-  handlePing,
-  handlePromptsGet,
-  handlePromptsList,
-  handleResourcesList,
-  handleResourcesRead,
-  handleToolsCall,
-  handleToolsList,
-} from "./mcp/handlers.js";
+import { createMcpHandler } from "./mcp/handler.js";
 import { McpManager } from "./mcp/manager.js";
 import { MemoryStore } from "./storage/memory.js";
 import { SqliteStore } from "./storage/sqlite.js";
@@ -209,96 +196,6 @@ export async function createServer(config: Config) {
     return next();
   });
 
-  // MCP handler
-  const handleMcp = async (c: Context) => {
-    let message: JSONRPCMessage;
-    try {
-      message = await c.req.json();
-    } catch (e) {
-      logger.warn(
-        { error: e instanceof Error ? e.message : String(e) },
-        "MCP parse error",
-      );
-      return c.json(
-        {
-          jsonrpc: "2.0",
-          error: { code: -32700, message: "Parse error" },
-          id: null,
-        },
-        400,
-      );
-    }
-
-    const method = "method" in message ? message.method : undefined;
-    const id = "id" in message ? message.id : undefined;
-    logger.debug({ method, id }, "MCP request");
-
-    if (method === "initialize") {
-      return handleInitialize(c, message);
-    }
-
-    if (method === "notifications/initialized") {
-      return handleInitialized(c);
-    }
-
-    if (method === "tools/list") {
-      return handleToolsList(c, message, mcpManager);
-    }
-
-    if (method === "tools/call") {
-      const params = (
-        message as unknown as {
-          params: { name: string; arguments?: Record<string, unknown> };
-        }
-      ).params;
-      return handleToolsCall(c, message, mcpManager, params);
-    }
-
-    if (method === "resources/list") {
-      return handleResourcesList(c, message, mcpManager);
-    }
-
-    if (method === "resources/read") {
-      const params = (
-        message as unknown as {
-          params: { uri: string };
-        }
-      ).params;
-      return handleResourcesRead(c, message, mcpManager, params);
-    }
-
-    if (method === "prompts/list") {
-      return handlePromptsList(c, message, mcpManager);
-    }
-
-    if (method === "prompts/get") {
-      const params = (
-        message as unknown as {
-          params: { name: string; arguments?: Record<string, string> };
-        }
-      ).params;
-      return handlePromptsGet(c, message, mcpManager, params);
-    }
-
-    if (method === "ping") {
-      return handlePing(c, message);
-    }
-
-    if (method === "completion/complete") {
-      const params = (
-        message as unknown as {
-          params: {
-            ref: { type: string; name?: string; uri?: string };
-            argument: { name: string; value: string };
-          };
-        }
-      ).params;
-      return handleCompletionComplete(c, message, mcpManager, params);
-    }
-
-    return handleMethodNotFound(c, message, method ?? "unknown");
-  };
-
   // Status endpoint (protected)
   protectedRoutes.get("/status", async (c) => {
     const health = await mcpManager.checkHealth();
@@ -306,8 +203,9 @@ export async function createServer(config: Config) {
   });
 
   // MCP endpoints (protected)
-  protectedRoutes.post("/", handleMcp);
-  protectedRoutes.post("/mcp", handleMcp);
+  const mcp = createMcpHandler(mcpManager);
+  protectedRoutes.post("/", mcp);
+  protectedRoutes.post("/mcp", mcp);
 
   // Mount protected routes
   app.route("/", protectedRoutes);

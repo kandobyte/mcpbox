@@ -1,6 +1,6 @@
 # MCP Conformance
 
-MCPBox implements [MCP Streamable HTTP Transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports#streamable-http) using request/response only (no SSE).
+MCPBox implements [MCP Streamable HTTP Transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports#streamable-http) using request/response only. For clients setting `Accept: text/event-stream`, requests still succeed but progress/log notifications are not streamed.
 
 Passes **19/30** scenarios in the official [MCP conformance test suite](https://github.com/modelcontextprotocol/conformance).
 
@@ -15,26 +15,26 @@ Passes **19/30** scenarios in the official [MCP conformance test suite](https://
 | tools-call-embedded-resource | ✓ | |
 | tools-call-mixed-content | ✓ | |
 | tools-call-error | ✓ | |
-| tools-call-with-logging | ✗ | Requires SSE |
-| tools-call-with-progress | ✗ | Requires SSE |
-| tools-call-sampling | ✗ | Requires SSE |
-| tools-call-elicitation | ✗ | Requires SSE |
+| tools-call-with-logging | ✗ | Not implemented |
+| tools-call-with-progress | ✗ | Not implemented |
+| tools-call-sampling | ✗ | Not implemented |
+| tools-call-elicitation | ✗ | Not implemented |
 | resources-list | ✓ | |
 | resources-read-text | ✓ | |
 | resources-read-binary | ✓ | |
 | resources-templates-read | ✗ | Not implemented |
-| resources-subscribe | ✗ | Requires SSE |
-| resources-unsubscribe | ✗ | Requires SSE |
+| resources-subscribe | ✗ | Not implemented |
+| resources-unsubscribe | ✗ | Not implemented |
 | prompts-list | ✓ | |
 | prompts-get-simple | ✓ | |
 | prompts-get-with-args | ✓ | |
 | prompts-get-embedded-resource | ✓ | |
 | prompts-get-with-image | ✓ | |
-| logging-set-level | ✗ | N/A without SSE |
+| logging-set-level | ✗ | N/A without `tools-call-with-logging` |
 | completion-complete | ✓ | |
-| server-sse-multiple-streams | ✗ | Requires SSE |
-| elicitation-sep1034-defaults | ✗ | Requires SSE |
-| elicitation-sep1330-enums | ✗ | Requires SSE |
+| server-sse-multiple-streams | ✗ | Not implemented |
+| elicitation-sep1034-defaults | ✗ | Not implemented |
+| elicitation-sep1330-enums | ✗ | Not implemented |
 | dns-rebinding-protection | ✗ | Not implemented |
 
 ## Running Tests
