@@ -135,11 +135,7 @@ async function handleRequest(
       );
     }
     try {
-      const { params } = parsed.data;
-      const result = await mcpManager.callTool(
-        params.name,
-        params.arguments ?? {},
-      );
+      const result = await mcpManager.callTool(parsed.data.params);
       return c.json(jsonrpcResult(id, result));
     } catch (error) {
       return c.json(
@@ -170,8 +166,7 @@ async function handleRequest(
       );
     }
     try {
-      const { params } = parsed.data;
-      const result = await mcpManager.readResource(params.uri);
+      const result = await mcpManager.readResource(parsed.data.params);
       return c.json(jsonrpcResult(id, result));
     } catch (error) {
       return c.json(
@@ -202,8 +197,7 @@ async function handleRequest(
       );
     }
     try {
-      const { params } = parsed.data;
-      const result = await mcpManager.getPrompt(params.name, params.arguments);
+      const result = await mcpManager.getPrompt(parsed.data.params);
       return c.json(jsonrpcResult(id, result));
     } catch (error) {
       return c.json(
@@ -224,8 +218,7 @@ async function handleRequest(
       );
     }
     try {
-      const { params } = parsed.data;
-      const result = await mcpManager.complete(params.ref, params.argument);
+      const result = await mcpManager.complete(parsed.data.params);
       return c.json(jsonrpcResult(id, result));
     } catch (error) {
       return c.json(
