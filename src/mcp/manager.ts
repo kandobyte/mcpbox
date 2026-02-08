@@ -6,6 +6,7 @@ import {
 import { validateToolName } from "@modelcontextprotocol/sdk/shared/toolNameValidation.js";
 import type {
   CallToolResult,
+  CompleteRequestParams,
   CompleteResult,
   GetPromptResult,
   Prompt,
@@ -420,8 +421,8 @@ export class McpManager {
   }
 
   async complete(
-    ref: { type: string; name?: string; uri?: string },
-    argument: { name: string; value: string },
+    ref: CompleteRequestParams["ref"],
+    argument: CompleteRequestParams["argument"],
   ): Promise<CompleteResult> {
     const { mcpName, originalRef } = this.resolveCompletionRef(ref);
 
@@ -442,11 +443,9 @@ export class McpManager {
     return result as CompleteResult;
   }
 
-  private resolveCompletionRef(ref: {
-    type: string;
-    name?: string;
-    uri?: string;
-  }):
+  private resolveCompletionRef(
+    ref: CompleteRequestParams["ref"],
+  ):
     | { mcpName: string; originalRef: { type: "ref/prompt"; name: string } }
     | { mcpName: string; originalRef: { type: "ref/resource"; uri: string } } {
     if (ref.type === "ref/prompt" && ref.name) {

@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
+import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import {
   mcpRequest,
   PORTS,
@@ -73,7 +74,7 @@ describe("MCP Protocol Handlers", () => {
       assert.strictEqual(serverInfo.name, "mcpbox");
     });
 
-    it("should handle missing params gracefully", async () => {
+    it("should reject initialize without required params", async () => {
       const { status, json } = await mcpRequest(BASE_URL, {
         jsonrpc: "2.0",
         method: "initialize",
@@ -82,7 +83,10 @@ describe("MCP Protocol Handlers", () => {
 
       assert.strictEqual(status, 200);
       const response = json as Record<string, unknown>;
-      assert.ok(response.result);
+      assert.strictEqual(response.id, 2);
+      const error = response.error as Record<string, unknown>;
+      assert.ok(error);
+      assert.strictEqual(error.code, ErrorCode.InvalidParams);
     });
   });
 
