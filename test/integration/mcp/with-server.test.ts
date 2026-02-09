@@ -24,6 +24,22 @@ const TEST_CONFIG = {
   ],
 };
 
+const DISABLED_PORT = 8086;
+const DISABLED_BASE_URL = `http://localhost:${DISABLED_PORT}`;
+
+const DISABLED_CONFIG = {
+  server: { port: DISABLED_PORT },
+  mcps: [
+    {
+      name: "mock",
+      command: "npx",
+      args: ["tsx", MOCK_SERVER_PATH],
+      resources: false,
+      prompts: false,
+    },
+  ],
+};
+
 describe("MCP with Real Server", () => {
   before(async () => {
     await startServer(TEST_CONFIG);
@@ -225,5 +241,74 @@ describe("MCP with Real Server", () => {
       assert.strictEqual(messages[0].role, "user");
       assert.ok(messages[0].content.text.includes("Hello"));
     });
+  });
+});
+
+describe("MCP with Resources and Prompts Disabled", () => {
+  before(async () => {
+    await startServer(DISABLED_CONFIG);
+    await new Promise((r) => setTimeout(r, 500));
+  });
+
+  after(async () => {
+    await stopServer();
+  });
+
+  it("should still list tools when resources and prompts are disabled", async () => {
+    const { status, json } = await mcpRequest(DISABLED_BASE_URL, {
+      jsonrpc: "2.0",
+      method: "tools/list",
+      id: 1,
+    });
+
+    assert.strictEqual(status, 200);
+    const response = json as Record<string, unknown>;
+    const result = response.result as Record<string, unknown>;
+    const tools = result.tools as Array<{ name: string }>;
+
+    assert.ok(
+      tools.length >= 3,
+      `Expected at least 3 tools, got ${tools.length}`,
+    );
+    const toolNames = tools.map((t) => t.name);
+    assert.ok(toolNames.includes("mock__echo"), "Should have mock__echo tool");
+  });
+
+  it("should return empty resources list when resources disabled", async () => {
+    const { status, json } = await mcpRequest(DISABLED_BASE_URL, {
+      jsonrpc: "2.0",
+      method: "resources/list",
+      id: 2,
+    });
+
+    assert.strictEqual(status, 200);
+    const response = json as Record<string, unknown>;
+    const result = response.result as Record<string, unknown>;
+    const resources = result.resources as Array<{ uri: string }>;
+
+    assert.strictEqual(
+      resources.length,
+      0,
+      "Resources should be empty when disabled",
+    );
+  });
+
+  it("should return empty prompts list when prompts disabled", async () => {
+    const { status, json } = await mcpRequest(DISABLED_BASE_URL, {
+      jsonrpc: "2.0",
+      method: "prompts/list",
+      id: 3,
+    });
+
+    assert.strictEqual(status, 200);
+    const response = json as Record<string, unknown>;
+    const result = response.result as Record<string, unknown>;
+    const prompts = result.prompts as Array<{ name: string }>;
+
+    assert.strictEqual(
+      prompts.length,
+      0,
+      "Prompts should be empty when disabled",
+    );
   });
 });

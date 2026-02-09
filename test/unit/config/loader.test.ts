@@ -319,6 +319,57 @@ describe("Config Loader", () => {
       ]);
     });
 
+    it("should handle MCP with resources disabled", async () => {
+      const path = writeConfig("resources-disabled.json", {
+        mcpServers: {
+          github: {
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            resources: false,
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { config } = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].resources, false);
+    });
+
+    it("should handle MCP with prompts disabled", async () => {
+      const path = writeConfig("prompts-disabled.json", {
+        mcpServers: {
+          github: {
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            prompts: false,
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { config } = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].prompts, false);
+    });
+
+    it("should default resources and prompts to undefined (enabled)", async () => {
+      const path = writeConfig("defaults-enabled.json", {
+        mcpServers: {
+          github: {
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+          },
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+      const { config } = loadConfig(path);
+
+      assert.strictEqual(config.mcps[0].resources, undefined);
+      assert.strictEqual(config.mcps[0].prompts, undefined);
+    });
+
     it("should handle MCP without tools (all tools allowed)", async () => {
       const path = writeConfig("no-tools-filter.json", {
         mcpServers: {

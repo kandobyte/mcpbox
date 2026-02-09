@@ -46,6 +46,8 @@ function parseMcpServers(
       args: entry.args,
       env: entry.env,
       tools: entry.tools,
+      resources: entry.resources,
+      prompts: entry.prompts,
     });
   }
   return mcps;

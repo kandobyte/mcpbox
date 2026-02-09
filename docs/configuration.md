@@ -90,6 +90,8 @@ Each key in `mcpServers` defines a stdio MCP server to spawn. The key becomes a 
 | `args` | `string[]` | Arguments passed to the command. |
 | `env` | `object` | Environment variables for the server process. Supports `${VAR}` substitution. |
 | `tools` | `string[]` | Whitelist of tool names to expose. Omit to expose all. |
+| `resources` | `boolean` | Expose resources from this server. Defaults to `true`. |
+| `prompts` | `boolean` | Expose prompts from this server. Defaults to `true`. |
 
 ### Tool filtering
 
@@ -102,6 +104,23 @@ By default, all tools from a server are exposed. Use `tools` to limit which ones
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "tools": ["list_issues", "create_issue", "get_pull_request"]
+    }
+  }
+}
+```
+
+### Disabling resources and prompts
+
+By default, resources and prompts from each server are exposed. Set `resources` or `prompts` to `false` to disable them for a specific server. This is useful when a server exposes resources or prompts you don't need, reducing noise in the AI context.
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "resources": false,
+      "prompts": false
     }
   }
 }

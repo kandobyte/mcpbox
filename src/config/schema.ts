@@ -22,6 +22,8 @@ export const McpServerEntrySchema = z
     args: z.array(z.string()).optional(),
     env: z.record(z.string(), z.string()).optional(),
     tools: z.array(z.string()).optional(),
+    resources: z.boolean().optional(),
+    prompts: z.boolean().optional(),
   })
   .strict();
 
@@ -236,6 +238,8 @@ export const McpConfigSchema = z.object({
   args: z.array(z.string()).optional(),
   env: z.record(z.string(), z.string()).optional(),
   tools: z.array(z.string()).optional(),
+  resources: z.boolean().optional(),
+  prompts: z.boolean().optional(),
 });
 
 /**

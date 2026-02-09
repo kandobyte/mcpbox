@@ -167,36 +167,44 @@ export class McpManager {
 
     // Get resources from this MCP (namespace them if multiple servers)
     let resources: Resource[] = [];
-    try {
-      const { resources: rawResources } = await client.listResources();
-      resources = this.useNamespacing
-        ? rawResources.map((resource) => ({
-            ...resource,
-            uri: namespaceName(config.name, resource.uri),
-          }))
-        : rawResources;
-      for (const resource of resources) {
-        this.resourceToMcp.set(resource.uri, config.name);
+    if (config.resources !== false) {
+      try {
+        const { resources: rawResources } = await client.listResources();
+        resources = this.useNamespacing
+          ? rawResources.map((resource) => ({
+              ...resource,
+              uri: namespaceName(config.name, resource.uri),
+            }))
+          : rawResources;
+        for (const resource of resources) {
+          this.resourceToMcp.set(resource.uri, config.name);
+        }
+      } catch {
+        logger.debug({ mcp: config.name }, "Server doesn't support resources");
       }
-    } catch {
-      logger.debug({ mcp: config.name }, "Server doesn't support resources");
+    } else {
+      logger.debug({ mcp: config.name }, "Resources disabled by config");
     }
 
     // Get prompts from this MCP (namespace them if multiple servers)
     let prompts: Prompt[] = [];
-    try {
-      const { prompts: rawPrompts } = await client.listPrompts();
-      prompts = this.useNamespacing
-        ? rawPrompts.map((prompt) => ({
-            ...prompt,
-            name: namespaceName(config.name, prompt.name),
-          }))
-        : rawPrompts;
-      for (const prompt of prompts) {
-        this.promptToMcp.set(prompt.name, config.name);
+    if (config.prompts !== false) {
+      try {
+        const { prompts: rawPrompts } = await client.listPrompts();
+        prompts = this.useNamespacing
+          ? rawPrompts.map((prompt) => ({
+              ...prompt,
+              name: namespaceName(config.name, prompt.name),
+            }))
+          : rawPrompts;
+        for (const prompt of prompts) {
+          this.promptToMcp.set(prompt.name, config.name);
+        }
+      } catch {
+        logger.debug({ mcp: config.name }, "Server doesn't support prompts");
       }
-    } catch {
-      logger.debug({ mcp: config.name }, "Server doesn't support prompts");
+    } else {
+      logger.debug({ mcp: config.name }, "Prompts disabled by config");
     }
 
     this.mcps.set(config.name, {
