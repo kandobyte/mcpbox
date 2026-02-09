@@ -1,14 +1,14 @@
+---
+description: Set up API key or OAuth authentication for MCPBox, including local users, GitHub identity providers, and client registration.
+---
+
 # Authentication
 
 Omit the `auth` section entirely to run without authentication. Otherwise, choose [API Key](#api-key) or [OAuth](#oauth).
 
----
-
 ## API Key
 
-Single shared secret — simplest setup.
-
-```jsonc
+```json
 {
   "auth": {
     "type": "apikey",
@@ -19,13 +19,11 @@ Single shared secret — simplest setup.
 
 Clients authenticate with `Authorization: Bearer <key>`. The key must be 16-128 characters (`[A-Za-z0-9_-]+`).
 
----
-
 ## OAuth
 
-MCPBox is its own OAuth authorization server, supporting Authorization Code (user login) and Client Credentials (machine-to-machine) flows. MCP clients discover it via standard metadata endpoints. Use local users defined in config, or GitHub as an external identity provider.
+MCPBox is its own OAuth 2.1 authorization server, supporting Authorization Code (user login) and Client Credentials (machine-to-machine) flows. MCP clients discover it via standard metadata endpoints. Use local users defined in config, or GitHub as an external identity provider.
 
-```jsonc
+```json
 {
   "auth": {
     "type": "oauth",
@@ -38,12 +36,12 @@ MCPBox is its own OAuth authorization server, supporting Authorization Code (use
 }
 ```
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `issuer` | `string` (URL) | `http://localhost:{port}` | Public URL of the server. Set this for remote access. |
-| `identityProviders` | `array` | `[]` | [Identity providers](#identity-providers) for user login |
-| `clients` | `array` | `[]` | [Pre-registered clients](#clients) |
-| `dynamicRegistration` | `boolean` | `false` | Allow clients to self-register via `/register` ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)). Requires at least one identity provider. |
+| Field | Type | Description |
+|---|---|---|
+| `issuer` | `string` | Public URL of the server. Set this for remote access. Defaults to `http://localhost:{port}`. |
+| `identityProviders` | `array` | [Identity providers](#identity-providers) for user login. |
+| `clients` | `array` | [Pre-registered clients](#clients). |
+| `dynamicRegistration` | `boolean` | Allow clients to self-register via `/register` ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)). Requires at least one identity provider. Defaults to `false`. |
 
 ### Identity Providers
 
@@ -51,7 +49,7 @@ MCPBox is its own OAuth authorization server, supporting Authorization Code (use
 
 Define usernames and passwords directly in config.
 
-```jsonc
+```json
 {
   "type": "local",
   "users": [
@@ -62,15 +60,15 @@ Define usernames and passwords directly in config.
 
 | Field | Type | Description |
 |---|---|---|
-| `users` | `array` | At least one user required |
-| `users[].username` | `string` | Username |
-| `users[].password` | `string` | Plain text or bcrypt hash (`$2a$`, `$2b$`, `$2y$` prefix) |
+| `users` | `array` | Required. At least one user. |
+| `users[].username` | `string` | Required. Username. |
+| `users[].password` | `string` | Required. Plain text or bcrypt hash (`$2a$`, `$2b$`, `$2y$` prefix). |
 
 #### GitHub
 
 Authenticate users through GitHub OAuth. Optionally restrict access to specific orgs or usernames.
 
-```jsonc
+```json
 {
   "type": "github",
   "clientId": "${GITHUB_OAUTH_CLIENT_ID}",
@@ -80,12 +78,12 @@ Authenticate users through GitHub OAuth. Optionally restrict access to specific 
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `clientId` | `string` | Yes | GitHub OAuth App Client ID |
-| `clientSecret` | `string` | Yes | GitHub OAuth App Client Secret |
-| `allowedOrgs` | `string[]` | No | Restrict to members of these orgs (case-insensitive) |
-| `allowedUsers` | `string[]` | No | Restrict to these usernames (case-insensitive) |
+| Field | Type | Description |
+|---|---|---|
+| `clientId` | `string` | Required. GitHub OAuth App Client ID. |
+| `clientSecret` | `string` | Required. GitHub OAuth App Client Secret. |
+| `allowedOrgs` | `string[]` | Restrict to members of these orgs (case-insensitive). |
+| `allowedUsers` | `string[]` | Restrict to these usernames (case-insensitive). |
 
 If neither `allowedOrgs` nor `allowedUsers` is set, any GitHub user can log in.
 
@@ -95,7 +93,7 @@ If neither `allowedOrgs` nor `allowedUsers` is set, any GitHub user can log in.
 
 Pre-register clients for fixed client IDs or machine-to-machine access. Most user-facing MCP clients support dynamic registration — enable `dynamicRegistration` instead of pre-registering each one.
 
-```jsonc
+```json
 {
   "clients": [
     {
@@ -112,32 +110,25 @@ Pre-register clients for fixed client IDs or machine-to-machine access. Most use
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `clientId` | `string` | Yes | Unique client identifier |
-| `clientName` | `string` | No | Human-readable display name |
-| `clientSecret` | `string` | No | Client secret |
-| `redirectUris` | `string[]` | No | Allowed redirect URIs (exact match) |
-| `grantType` | `string` | Yes | `"authorization_code"` or `"client_credentials"` |
-
-| Grant Type | Requires | Use Case |
+| Field | Type | Description |
 |---|---|---|
-| `authorization_code` | `redirectUris`, identity providers configured | User-facing apps — users log in via an identity provider |
-| `client_credentials` | `clientSecret` | Machine-to-machine access, no user context |
-
----
+| `clientId` | `string` | Required. Unique client identifier. |
+| `clientName` | `string` | Human-readable display name. |
+| `clientSecret` | `string` | Client secret. Required for `client_credentials`. |
+| `redirectUris` | `string[]` | Allowed redirect URIs (exact match). Required for `authorization_code`. |
+| `grantType` | `string` | Required. `"authorization_code"` or `"client_credentials"`. |
 
 ## Storage
 
 Persistence for tokens and dynamically registered clients. Only applies when using OAuth.
 
-```jsonc
+```json
 {
   "storage": { "type": "sqlite", "path": "./data/mcpbox.db" }
 }
 ```
 
-| Type | Description |
-|---|---|
-| `memory` | Default. In-memory, lost on restart. Fine for development. |
-| `sqlite` | Persistent. `path` defaults to `./data/mcpbox.db`. Recommended for production. |
+| Field | Type | Description |
+|---|---|---|
+| `type` | `string` | `"memory"` (in-memory, lost on restart) or `"sqlite"` (persistent). Defaults to `"memory"`. |
+| `path` | `string` | SQLite database path. Only applies when `type` is `"sqlite"`. Defaults to `"./data/mcpbox.db"`. |

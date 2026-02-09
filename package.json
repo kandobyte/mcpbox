@@ -18,7 +18,10 @@
     "test:conformance:oauth": "node --disable-warning=ExperimentalWarning --import tsx --test --test-concurrency=1 'test/conformance-oauth/**/*.test.ts'",
     "test:coverage": "node --experimental-test-coverage --disable-warning=ExperimentalWarning --import tsx --test --test-concurrency=1 'test/unit/**/*.test.ts' 'test/integration/**/*.test.ts' 'test/conformance-oauth/**/*.test.ts'",
     "format": "biome check --write .",
-    "check": "biome check ."
+    "check": "biome check .",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "keywords": [
     "mcp",
@@ -61,6 +64,7 @@
     "@biomejs/biome": "^2.3.14",
     "@types/node": "^25.1.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitepress": "^1.6.4"
   }
 }
