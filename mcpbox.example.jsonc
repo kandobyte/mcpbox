@@ -1,5 +1,5 @@
 // All string values support ${VAR} environment substitution.
-// See docs/authentication.md for full auth documentation.
+// See https://kandobyte.github.io/mcpbox/configuration for full documentation.
 {
   "server": {
     "port": 8080 // default: 8080

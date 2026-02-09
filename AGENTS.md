@@ -6,11 +6,12 @@
 
 ## Documentation Guidelines
 
+- When changing user-facing behavior, config, or features, update the corresponding docs in `docs/`
 - Docs follow progressive disclosure: open with the decision/choice, then a minimal example, then reference details — lead with *when/why* before *what/how*
 - One idea per sentence, no filler
 - Task headers ("Authentication"), not categories ("Overview")
 - Tables over prose for options/parameters
-- Maintain consistent rhythm throughout one document.
+- Maintain consistent rhythm throughout one document
 
 ## General Coding Guidelines
 
@@ -28,3 +29,4 @@
 - Use modern syntax: optional chaining (`?.`), nullish coalescing (`??`), `satisfies`, ES modules
 - After refactoring, run `npm run test` to verify tests pass and coverage requirements are met
 - Write tests covering happy path, edge cases, and error conditions with descriptive names
+- Test should validate observable behavior not implementation details

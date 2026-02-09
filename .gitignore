@@ -38,6 +38,10 @@ coverage/
 # TypeScript cache
 *.tsbuildinfo
 
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache
+
 # SQLite database
 data/
 *.db
