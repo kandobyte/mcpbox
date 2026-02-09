@@ -58,6 +58,47 @@ describe("Config Schemas", () => {
       });
       assert.strictEqual(result.success, false);
     });
+
+    it("should accept resources boolean", () => {
+      const result = McpServerEntrySchema.safeParse({
+        command: "node",
+        resources: false,
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should accept prompts boolean", () => {
+      const result = McpServerEntrySchema.safeParse({
+        command: "node",
+        prompts: false,
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should accept both resources and prompts set to false", () => {
+      const result = McpServerEntrySchema.safeParse({
+        command: "node",
+        resources: false,
+        prompts: false,
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should reject non-boolean resources", () => {
+      const result = McpServerEntrySchema.safeParse({
+        command: "node",
+        resources: "false",
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should reject non-boolean prompts", () => {
+      const result = McpServerEntrySchema.safeParse({
+        command: "node",
+        prompts: "false",
+      });
+      assert.strictEqual(result.success, false);
+    });
   });
 
   describe("OAuthUserSchema", () => {

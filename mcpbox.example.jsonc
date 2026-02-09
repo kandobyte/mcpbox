@@ -59,7 +59,9 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
-      "tools": ["list_issues", "create_issue", "get_pull_request"] // optional: only expose these tools (default: all)
+      "tools": ["list_issues", "create_issue", "get_pull_request"], // optional: only expose these tools (default: all)
+      "resources": true, // optional: expose resources (default: true)
+      "prompts": true // optional: expose prompts (default: true)
     },
     "fetch": {
       "command": "uvx",
