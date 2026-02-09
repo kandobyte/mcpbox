@@ -12,7 +12,15 @@ export type { LoadConfigResult } from "./schema.js";
 
 function substituteEnvVars(obj: unknown): unknown {
   if (typeof obj === "string") {
-    return obj.replace(/\$\{(\w+)\}/g, (_, name) => process.env[name] ?? "");
+    return obj.replace(/\$\{(\w+)\}/g, (match, name) => {
+      const value = process.env[name];
+      if (value === undefined) {
+        throw new Error(
+          `Environment variable ${name} is not set (referenced as ${match})`,
+        );
+      }
+      return value;
+    });
   }
   if (Array.isArray(obj)) {
     return obj.map(substituteEnvVars);

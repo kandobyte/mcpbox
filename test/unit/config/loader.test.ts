@@ -124,6 +124,25 @@ describe("Config Loader", () => {
       delete process.env.MCP_TOKEN;
     });
 
+    it("should throw on missing environment variable", async () => {
+      delete process.env.NONEXISTENT_VAR;
+
+      const path = writeConfig("missing-env.json", {
+        auth: {
+          type: "apikey",
+          // biome-ignore lint/suspicious/noTemplateCurlyInString: testing env var substitution
+          apiKey: "${NONEXISTENT_VAR}",
+        },
+      });
+
+      const { loadConfig } = await import("../../../src/config/loader.js");
+
+      assert.throws(
+        () => loadConfig(path),
+        /Environment variable NONEXISTENT_VAR is not set/,
+      );
+    });
+
     it("should handle multiple env vars in same string", async () => {
       process.env.HOST = "localhost";
       process.env.PORT = "5432";
