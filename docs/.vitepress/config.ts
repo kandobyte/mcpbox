@@ -1,8 +1,12 @@
 import { defineConfig } from "vitepress";
+import llmstxt from "vitepress-plugin-llms";
 
 const siteUrl = "https://kandobyte.github.io/mcpbox/";
 
 export default defineConfig({
+  vite: {
+    plugins: [llmstxt()],
+  },
   title: "MCPBox",
   description:
     "A lightweight gateway that exposes local stdio-based MCP servers via Streamable HTTP",
@@ -14,6 +18,17 @@ export default defineConfig({
 
   head: [
     ["link", { rel: "icon", href: "/mcpbox/logo.svg" }],
+    [
+      "link",
+      { rel: "alternate", type: "text/markdown", href: "/mcpbox/llms.txt" },
+    ],
+    [
+      "meta",
+      {
+        name: "google-site-verification",
+        content: "N9dWHHrg_Bir-6kAh-UB7ZHgkfN_DVfwfMEv2yX59jg",
+      },
+    ],
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:site_name", content: "MCPBox" }],
   ],

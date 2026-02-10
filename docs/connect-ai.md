@@ -14,7 +14,6 @@ Most MCP clients support dynamic registration:
 {
   "mcpServers": {
     "mcpbox": {
-      "type": "http",
       "url": "https://your-mcpbox-url.com"
     }
   }
@@ -38,7 +37,6 @@ Pass the key in the `Authorization` header:
 {
   "mcpServers": {
     "mcpbox": {
-      "type": "http",
       "url": "https://your-mcpbox-url.com",
       "headers": {
         "Authorization": "Bearer YOUR_API_KEY"

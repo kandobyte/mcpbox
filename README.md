@@ -49,7 +49,6 @@ Add to your MCP client config:
 {
   "mcpServers": {
     "mcpbox": {
-      "type": "http",
       "url": "http://localhost:8080"
     }
   }

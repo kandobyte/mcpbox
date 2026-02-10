@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kandobyte.github.io/mcpbox/sitemap.xml

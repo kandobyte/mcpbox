@@ -47,7 +47,6 @@ MCPBox starts on `http://localhost:8080`. Add it to your MCP client's config:
 {
   "mcpServers": {
     "mcpbox": {
-      "type": "http",
       "url": "http://localhost:8080"
     }
   }
