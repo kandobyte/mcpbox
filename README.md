@@ -3,6 +3,13 @@
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
     <img src="assets/logo.svg" width="128" alt="MCPBox">
   </picture>
+  <br>
+  <a href="https://www.npmjs.com/package/mcpbox">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/mcpbox?style=flat-square&color=white&labelColor=white">
+      <img src="https://img.shields.io/npm/v/mcpbox?style=flat-square&color=black&labelColor=black" alt="npm version">
+    </picture>
+  </a>
 </p>
 
 **MCPBox** is a lightweight gateway that exposes local stdio-based [MCP](https://modelcontextprotocol.io) servers via Streamable HTTP, enabling Claude and other AI agents to connect from anywhere.
