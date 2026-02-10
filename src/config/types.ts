@@ -13,11 +13,3 @@ export type {
   ServerConfig,
   StorageConfig,
 } from "./schema.js";
-
-// Also export GrantType for backwards compatibility
-export type GrantType = "authorization_code" | "client_credentials";
-
-// Legacy type alias
-export type McpServersConfig = {
-  mcpServers: Record<string, import("./schema.js").McpServerEntry>;
-};
