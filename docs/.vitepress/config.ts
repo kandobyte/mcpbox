@@ -7,6 +7,7 @@ export default defineConfig({
   vite: {
     plugins: [llmstxt()],
   },
+  cleanUrls: true,
   title: "MCPBox",
   description:
     "A lightweight gateway that exposes local stdio-based MCP servers via Streamable HTTP",
