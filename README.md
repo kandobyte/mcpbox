@@ -6,8 +6,14 @@
   <br>
   <a href="https://www.npmjs.com/package/mcpbox">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/mcpbox?style=flat-square&color=white&labelColor=white">
-      <img src="https://img.shields.io/npm/v/mcpbox?style=flat-square&color=black&labelColor=black" alt="npm version">
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/mcpbox?style=flat-square&labelColor=white&color=black">
+      <img src="https://img.shields.io/npm/v/mcpbox?style=flat-square&labelColor=black&color=white" alt="npm version">
+    </picture>
+  </a>
+  <a href="https://github.com/kandobyte/mcpbox/blob/main/LICENSE">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/kandobyte/mcpbox?style=flat-square&labelColor=white&color=black">
+      <img src="https://img.shields.io/github/license/kandobyte/mcpbox?style=flat-square&labelColor=black&color=white" alt="license">
     </picture>
   </a>
 </p>
