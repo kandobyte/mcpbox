@@ -4,17 +4,8 @@
     <img src="assets/logo.svg" width="128" alt="MCPBox">
   </picture>
   <br>
-  <a href="https://www.npmjs.com/package/mcpbox">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/mcpbox?style=flat-square&labelColor=white&color=black">
-      <img src="https://img.shields.io/npm/v/mcpbox?style=flat-square&labelColor=black&color=white" alt="npm version">
-    </picture>
-  </a>&nbsp;<a href="https://github.com/kandobyte/mcpbox/blob/main/LICENSE">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/kandobyte/mcpbox?style=flat-square&labelColor=white&color=black">
-      <img src="https://img.shields.io/github/license/kandobyte/mcpbox?style=flat-square&labelColor=black&color=white" alt="license">
-    </picture>
-  </a>
+  <a href="https://www.npmjs.com/package/mcpbox"><img src="https://img.shields.io/npm/v/mcpbox" alt="npm version"></a>
+  <a href="https://github.com/kandobyte/mcpbox/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kandobyte/mcpbox" alt="license"></a>
 </p>
 
 **MCPBox** is a lightweight gateway that exposes local stdio-based [MCP](https://modelcontextprotocol.io) servers via Streamable HTTP, enabling Claude and other AI agents to connect from anywhere.
