@@ -9,8 +9,7 @@
       <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/mcpbox?style=flat-square&labelColor=white&color=black">
       <img src="https://img.shields.io/npm/v/mcpbox?style=flat-square&labelColor=black&color=white" alt="npm version">
     </picture>
-  </a>
-  <a href="https://github.com/kandobyte/mcpbox/blob/main/LICENSE">
+  </a>&nbsp;<a href="https://github.com/kandobyte/mcpbox/blob/main/LICENSE">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/license/kandobyte/mcpbox?style=flat-square&labelColor=white&color=black">
       <img src="https://img.shields.io/github/license/kandobyte/mcpbox?style=flat-square&labelColor=black&color=white" alt="license">
