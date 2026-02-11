@@ -53,7 +53,7 @@ Define usernames and passwords directly in config.
 {
   "type": "local",
   "users": [
-    { "username": "admin", "password": "${MCPBOX_PASSWORD}" }
+    { "username": "user1", "password": "${MCPBOX_PASSWORD}" }
   ]
 }
 ```

@@ -88,14 +88,14 @@ Each key in `mcpServers` defines a stdio MCP server to spawn. The key becomes a 
 |---|---|---|
 | `command` | `string` | Required. Command to spawn the MCP server. |
 | `args` | `string[]` | Arguments passed to the command. |
-| `env` | `object` | Environment variables for the server process. Supports `${VAR}` substitution. |
-| `tools` | `string[]` | Whitelist of tool names to expose. Omit to expose all. |
+| `env` | `object` | Environment variables for the server process. |
+| `tools` | `string[]` | Allowlist of tool names to expose. Omit to expose all. |
 | `resources` | `boolean` | Expose resources from this server. Defaults to `true`. |
 | `prompts` | `boolean` | Expose prompts from this server. Defaults to `true`. |
 
 ### Tool filtering
 
-By default, all tools from a server are exposed. Use `tools` to limit which ones are available. This reduces the context sent to the AI and restricts what it can do with that server.
+By default, all tools from a server are exposed. Use `tools` to limit which ones are available. This reduces context size and limits what the AI can do with that server.
 
 ```json
 {
@@ -111,7 +111,7 @@ By default, all tools from a server are exposed. Use `tools` to limit which ones
 
 ### Disabling resources and prompts
 
-By default, resources and prompts from each server are exposed. Set `resources` or `prompts` to `false` to disable them for a specific server. This is useful when a server exposes resources or prompts you don't need, reducing noise in the AI context.
+By default, resources and prompts from each server are exposed. Set `resources` or `prompts` to `false` to disable them for a specific server. Useful when a server exposes resources or prompts you don't need.
 
 ```json
 {

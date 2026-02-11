@@ -28,7 +28,7 @@ Set the generated URL as your `issuer`:
     "identityProviders": [
       {
         "type": "local",
-        "users": [{ "username": "admin", "password": "${MCPBOX_PASSWORD}" }]
+        "users": [{ "username": "user1", "password": "${MCPBOX_PASSWORD}" }]
       }
     ],
     "dynamicRegistration": true
