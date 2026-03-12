@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "tap",
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json",
+  "mutate": ["src/**/*.ts", "!src/**/*.d.ts"],
+  "tap": {
+    "testFiles": ["test/unit/**/*.test.ts"],
+    "nodeArgs": [
+      "--disable-warning=ExperimentalWarning",
+      "--import",
+      "tsx",
+      "--test-reporter=tap"
+    ]
+  },
+  "coverageAnalysis": "perTest",
+  "ignoreStatic": true,
+  "reporters": ["html", "clear-text", "progress"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  }
+}

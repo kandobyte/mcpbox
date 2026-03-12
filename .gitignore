@@ -42,6 +42,10 @@ coverage/
 docs/.vitepress/dist
 docs/.vitepress/cache
 
+# Stryker
+.stryker-tmp/
+reports/
+
 # SQLite database
 data/
 *.db
