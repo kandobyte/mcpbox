@@ -54,7 +54,7 @@
   "type": "module",
   "dependencies": {
     "@hono/node-server": "^1.19.9",
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "bcryptjs": "^3.0.0",
     "hono": "^4.12.7",
     "pino": "^10.3.0",
