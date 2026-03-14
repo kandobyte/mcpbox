@@ -42,7 +42,7 @@ export const OAuthUserSchema = z
  * Local identity provider — users defined in config.
  * @package
  */
-export const LocalIdPSchema = z
+const LocalIdPSchema = z
   .object({
     type: z.literal("local"),
     users: z.array(OAuthUserSchema).min(1, "At least one user is required"),
@@ -53,7 +53,7 @@ export const LocalIdPSchema = z
  * GitHub identity provider — OAuth web flow.
  * @package
  */
-export const GitHubIdPSchema = z
+const GitHubIdPSchema = z
   .object({
     type: z.literal("github"),
     clientId: z.string().min(1, "GitHub clientId is required"),
@@ -254,18 +254,9 @@ export const ConfigSchema = z.object({
   mcps: z.array(McpConfigSchema),
 });
 
-// Export inferred types
-export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;
-export type OAuthUser = z.infer<typeof OAuthUserSchema>;
+// Types consumed by other modules
 export type OAuthClient = z.infer<typeof OAuthClientSchema>;
-export type IdentityProviderConfig = z.infer<typeof IdentityProviderSchema>;
-export type LocalIdPConfig = z.infer<typeof LocalIdPSchema>;
-export type GitHubIdPConfig = z.infer<typeof GitHubIdPSchema>;
-export type AuthConfig = z.infer<typeof AuthConfigSchema>;
-export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 export type LogConfig = z.infer<typeof LogConfigSchema>;
-export type StorageConfig = z.infer<typeof StorageConfigSchema>;
-export type RawConfig = z.infer<typeof RawConfigSchema>;
 export type McpConfig = z.infer<typeof McpConfigSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
 

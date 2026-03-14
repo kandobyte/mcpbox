@@ -51,6 +51,19 @@ jobs:
       - run: npm ci
       - run: npm run check
 
+  knip:
+    name: Dead Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - run: npm ci
+      - run: npm run knip
+
   test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest

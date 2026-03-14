@@ -17,7 +17,7 @@ import type {
   RedirectIdentityProvider,
 } from "./providers/identity-provider.js";
 
-export interface OAuthConfig {
+interface OAuthConfig {
   issuer: string;
   providers: IdentityProvider[];
   clients?: OAuthClient[];
@@ -644,7 +644,10 @@ export class OAuthServer {
               box-sizing: border-box;
             }
             body {
-              font-family: system-ui, -apple-system, sans-serif;
+              font-family:
+                system-ui,
+                -apple-system,
+                sans-serif;
               background: #fafaf9;
               margin: 0;
               padding: 20px;
@@ -664,8 +667,8 @@ export class OAuthServer {
               max-width: 380px;
             }
             h1 {
-              font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas,
-                monospace;
+              font-family:
+                ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
               font-size: 28px;
               font-weight: 600;
               color: #1c1917;
@@ -803,11 +806,7 @@ export class OAuthServer {
             ${
               hasForm
                 ? html`<form method="POST" action="${formAction}">
-                  <input
-                    type="hidden"
-                    name="session_id"
-                    value="${sessionId}"
-                  />
+                  <input type="hidden" name="session_id" value="${sessionId}" />
                   <div class="field">
                     <label for="username">Username</label>
                     <input

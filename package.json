@@ -20,6 +20,7 @@
     "test:mutation": "stryker run",
     "format": "biome check --write .",
     "check": "biome check .",
+    "knip": "knip",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -67,6 +68,7 @@
     "@stryker-mutator/tap-runner": "^9.6.0",
     "@stryker-mutator/typescript-checker": "^9.6.0",
     "@types/node": "^25.1.0",
+    "knip": "^5.86.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitepress": "^1.6.4",

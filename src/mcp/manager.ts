@@ -22,7 +22,7 @@ import { logger } from "../logger.js";
 import { NAME, VERSION } from "../version.js";
 import { namespaceName, stripNamespace } from "./namespace.js";
 
-export interface ManagedMcp {
+interface ManagedMcp {
   name: string;
   client: Client;
   transport: StdioClientTransport;
