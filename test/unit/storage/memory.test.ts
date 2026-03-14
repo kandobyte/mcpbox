@@ -3,6 +3,8 @@ import { beforeEach, describe, it } from "node:test";
 import { MemoryStore } from "../../../src/storage/memory.js";
 import {
   createDynamicClient,
+  createExpiredAccessToken,
+  createExpiredRefreshToken,
   createTestAccessToken,
   createTestClient,
   createTestRefreshToken,
@@ -126,6 +128,22 @@ describe("MemoryStore", () => {
       assert.strictEqual(withScope?.scope, "read write");
       assert.strictEqual(withoutScope?.scope, undefined);
     });
+
+    it("should return null for expired access token", () => {
+      const expired = createExpiredAccessToken({ token: "expired-access" });
+      store.saveAccessToken(expired);
+
+      const result = store.getAccessToken("expired-access");
+      assert.strictEqual(result, null);
+    });
+
+    it("should clean up expired access token on retrieval", () => {
+      const expired = createExpiredAccessToken({ token: "expired-cleanup" });
+      store.saveAccessToken(expired);
+
+      store.getAccessToken("expired-cleanup");
+      assert.strictEqual(store.getAccessToken("expired-cleanup"), null);
+    });
   });
 
   describe("Refresh Token Operations", () => {
@@ -164,6 +182,27 @@ describe("MemoryStore", () => {
 
       assert.strictEqual(store.getRefreshToken("old-token"), null);
       assert.deepStrictEqual(store.getRefreshToken("new-token"), newToken);
+    });
+
+    it("should return null for expired refresh token", () => {
+      const expired = createExpiredRefreshToken({ token: "expired-refresh" });
+      store.saveRefreshToken(expired);
+
+      const result = store.getRefreshToken("expired-refresh");
+      assert.strictEqual(result, null);
+    });
+
+    it("should clean up expired refresh token on retrieval", () => {
+      const expired = createExpiredRefreshToken({
+        token: "expired-refresh-cleanup",
+      });
+      store.saveRefreshToken(expired);
+
+      store.getRefreshToken("expired-refresh-cleanup");
+      assert.strictEqual(
+        store.getRefreshToken("expired-refresh-cleanup"),
+        null,
+      );
     });
   });
 

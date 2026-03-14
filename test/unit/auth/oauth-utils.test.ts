@@ -100,6 +100,10 @@ describe("oauth-utils", () => {
     it("should return false for empty string", () => {
       assert.strictEqual(isBcryptHash(""), false);
     });
+
+    it("should return false when bcrypt pattern appears mid-string", () => {
+      assert.strictEqual(isBcryptHash("prefix$2a$10$somehash"), false);
+    });
   });
 
   describe("verifyPassword", () => {
@@ -247,6 +251,15 @@ describe("oauth-utils", () => {
       // The regex \s+ consumes all whitespace, so "Bearer   token" -> "token"
       const result = parseBearerToken("Bearer   token");
       assert.strictEqual(result, "token");
+    });
+
+    it("should return null when Bearer appears after other text", () => {
+      assert.strictEqual(parseBearerToken("XBearer token123"), null);
+      assert.strictEqual(parseBearerToken("something Bearer token123"), null);
+    });
+
+    it("should return null when there is trailing content after token on new line", () => {
+      assert.strictEqual(parseBearerToken("Bearer token\nextra"), null);
     });
   });
 });

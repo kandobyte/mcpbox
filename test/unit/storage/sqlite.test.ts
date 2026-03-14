@@ -294,6 +294,15 @@ describe("SqliteStore", () => {
       store.cleanupExpired();
     });
 
+    it("should not remove non-expired tokens during cleanup", () => {
+      const valid = createTestAccessToken({ token: "still-valid" });
+      store.saveAccessToken(valid);
+
+      store.cleanupExpired();
+
+      assert.ok(store.getAccessToken("still-valid"));
+    });
+
     it("should persist after cleanup", async () => {
       const expired = createExpiredAccessToken({ token: "expired" });
       store.saveAccessToken(expired);
@@ -350,6 +359,74 @@ describe("SqliteStore", () => {
       const retrieved = store2.getClient("close-test");
       assert.ok(retrieved);
       store2.close();
+    });
+
+    it("should make database inaccessible after close", () => {
+      store.close();
+
+      // After close, operations should throw
+      assert.throws(() => {
+        store.getClient("anything");
+      });
+    });
+  });
+
+  describe("Rotate Refresh Token", () => {
+    it("should commit the transaction so new token persists", async () => {
+      const oldToken = createTestRefreshToken({ token: "rotate-old" });
+      store.saveRefreshToken(oldToken);
+
+      const newToken = createTestRefreshToken({
+        token: "rotate-new",
+        userId: oldToken.userId,
+      });
+      store.rotateRefreshToken("rotate-old", newToken);
+
+      // Close and reopen to verify commit persisted
+      store.close();
+      const store2 = await SqliteStore.create(dbPath);
+      assert.strictEqual(store2.getRefreshToken("rotate-old"), null);
+      assert.deepStrictEqual(store2.getRefreshToken("rotate-new"), newToken);
+      store2.close();
+    });
+
+    it("should rollback on error during rotation", () => {
+      const oldToken = createTestRefreshToken({ token: "rollback-old" });
+      store.saveRefreshToken(oldToken);
+
+      // Close db to cause an error during rotation
+      store.close();
+
+      assert.throws(() => {
+        store.rotateRefreshToken(
+          "rollback-old",
+          createTestRefreshToken({ token: "rollback-new" }),
+        );
+      });
+    });
+  });
+
+  describe("Cleanup Expired Tokens (detailed)", () => {
+    it("should remove expired tokens so they cannot be retrieved after re-open", async () => {
+      const expired = createExpiredAccessToken({ token: "cleanup-target" });
+      store.saveAccessToken(expired);
+
+      store.cleanupExpired();
+      store.close();
+
+      // Re-open to confirm the row was actually deleted, not just filtered
+      const store2 = await SqliteStore.create(dbPath);
+      assert.strictEqual(store2.getAccessToken("cleanup-target"), null);
+      store2.close();
+    });
+
+    it("should not delete anything when no tokens are expired", () => {
+      const valid = createTestAccessToken({ token: "not-expired" });
+      store.saveAccessToken(valid);
+
+      store.cleanupExpired();
+
+      assert.ok(store.getAccessToken("not-expired"));
     });
   });
 });

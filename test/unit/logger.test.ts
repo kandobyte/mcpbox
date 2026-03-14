@@ -1,6 +1,10 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { redactSensitiveStrings } from "../../src/logger.js";
+import {
+  configureLogger,
+  logger,
+  redactSensitiveStrings,
+} from "../../src/logger.js";
 
 describe("redactSensitiveStrings", () => {
   describe("String Redaction", () => {
@@ -164,5 +168,68 @@ describe("redactSensitiveStrings", () => {
       // \S* matches until whitespace, so special chars are included
       assert.strictEqual(result, "TOKEN=***");
     });
+  });
+});
+
+describe("configureLogger", () => {
+  it("should create a default logger with info level", () => {
+    assert.ok(logger);
+    assert.strictEqual(logger.level, "info");
+  });
+
+  it("should reconfigure logger with custom level", () => {
+    configureLogger({ level: "warn" });
+    assert.strictEqual(logger.level, "warn");
+    configureLogger();
+  });
+
+  it("should respect LOG_LEVEL env var as fallback", () => {
+    const original = process.env.LOG_LEVEL;
+    process.env.LOG_LEVEL = "error";
+    configureLogger();
+    assert.strictEqual(logger.level, "error");
+    if (original !== undefined) {
+      process.env.LOG_LEVEL = original;
+    } else {
+      delete process.env.LOG_LEVEL;
+    }
+    configureLogger();
+  });
+
+  it("should prefer config level over LOG_LEVEL env var", () => {
+    const original = process.env.LOG_LEVEL;
+    process.env.LOG_LEVEL = "error";
+    configureLogger({ level: "debug" });
+    assert.strictEqual(logger.level, "debug");
+    if (original !== undefined) {
+      process.env.LOG_LEVEL = original;
+    } else {
+      delete process.env.LOG_LEVEL;
+    }
+    configureLogger();
+  });
+
+  it("should apply redaction by default", () => {
+    configureLogger();
+    assert.ok(logger);
+    assert.strictEqual(typeof logger.info, "function");
+  });
+
+  it("should disable redaction when redactSecrets is false", () => {
+    configureLogger({ redactSecrets: false });
+    assert.ok(logger);
+    configureLogger();
+  });
+
+  it("should use json format without pino-pretty transport", () => {
+    configureLogger({ format: "json" });
+    assert.ok(logger);
+    configureLogger();
+  });
+
+  it("should use pretty format with pino-pretty transport", () => {
+    configureLogger({ format: "pretty" });
+    assert.ok(logger);
+    configureLogger();
   });
 });

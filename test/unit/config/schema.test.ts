@@ -555,4 +555,254 @@ describe("Config Schemas", () => {
       assert.strictEqual(result.success, false);
     });
   });
+
+  describe("Validation error messages", () => {
+    it("should include specific message for API key max length", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "apikey",
+        apiKey: "a".repeat(200),
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("at most 128"),
+          `Expected 'at most 128' in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for empty command", () => {
+      const result = McpServerEntrySchema.safeParse({ command: "" });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Command is required"),
+          `Expected 'Command is required' in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for empty username", () => {
+      const result = OAuthUserSchema.safeParse({
+        username: "",
+        password: "pass",
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Username is required"),
+          `Expected 'Username is required' in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for empty password", () => {
+      const result = OAuthUserSchema.safeParse({
+        username: "admin",
+        password: "",
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Password is required"),
+          `Expected 'Password is required' in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for empty users array in local IdP", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "local",
+        users: [],
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("At least one user"),
+          `Expected 'At least one user' in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for missing GitHub clientId", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "github",
+        clientId: "",
+        clientSecret: "secret",
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("GitHub clientId is required"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for missing GitHub clientSecret", () => {
+      const result = IdentityProviderSchema.safeParse({
+        type: "github",
+        clientId: "id",
+        clientSecret: "",
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("GitHub clientSecret is required"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for empty client ID in OAuthClient", () => {
+      const result = OAuthClientSchema.safeParse({
+        clientId: "",
+        clientSecret: "secret",
+        grantType: "client_credentials",
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Client ID is required"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for invalid issuer URL", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        issuer: "not-a-url",
+        identityProviders: [
+          { type: "local", users: [{ username: "a", password: "b" }] },
+        ],
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Invalid issuer URL"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for duplicate client IDs", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        clients: [
+          {
+            clientId: "dup",
+            clientSecret: "s1",
+            grantType: "client_credentials",
+          },
+          {
+            clientId: "dup",
+            clientSecret: "s2",
+            grantType: "client_credentials",
+          },
+        ],
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Duplicate client IDs"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for dynamic registration without IdPs", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        dynamicRegistration: true,
+      });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("dynamic registration requires identity providers"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+
+    it("should include specific message for port below minimum", () => {
+      const result = ServerConfigSchema.safeParse({ port: 0 });
+      assert.strictEqual(result.success, false);
+      if (!result.success) {
+        const msg = result.error.issues.map((i) => i.message).join(" ");
+        assert.ok(
+          msg.includes("Port must be at least 1"),
+          `Expected message in: ${msg}`,
+        );
+      }
+    });
+  });
+
+  describe("OAuth edge cases", () => {
+    it("should reject oauth with empty identityProviders array", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        identityProviders: [],
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should reject oauth with empty clients array", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        clients: [],
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should accept oauth with only dynamicRegistration and IdPs (no clients)", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        dynamicRegistration: true,
+        identityProviders: [
+          { type: "local", users: [{ username: "admin", password: "pass" }] },
+        ],
+      });
+      assert.strictEqual(result.success, true);
+    });
+
+    it("should reject dynamicRegistration with empty identityProviders", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        dynamicRegistration: true,
+        identityProviders: [],
+      });
+      assert.strictEqual(result.success, false);
+    });
+
+    it("should allow unique client IDs across multiple clients", () => {
+      const result = AuthConfigSchema.safeParse({
+        type: "oauth",
+        clients: [
+          {
+            clientId: "app-1",
+            clientSecret: "s1",
+            grantType: "client_credentials",
+          },
+          {
+            clientId: "app-2",
+            clientSecret: "s2",
+            grantType: "client_credentials",
+          },
+        ],
+      });
+      assert.strictEqual(result.success, true);
+    });
+  });
 });
