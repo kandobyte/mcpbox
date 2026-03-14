@@ -257,6 +257,7 @@ export const ConfigSchema = z.object({
 // Types consumed by other modules
 export type OAuthClient = z.infer<typeof OAuthClientSchema>;
 export type LogConfig = z.infer<typeof LogConfigSchema>;
+export type McpServerEntry = z.infer<typeof McpServerEntrySchema>;
 export type McpConfig = z.infer<typeof McpConfigSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
 
