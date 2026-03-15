@@ -36,6 +36,12 @@ Set the generated URL as your `issuer`:
   "storage": {
     "type": "sqlite",
     "path": "./data/mcpbox.db"
+  },
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    }
   }
 }
 ```
